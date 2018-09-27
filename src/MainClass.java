@@ -12,7 +12,7 @@ public class MainClass extends PApplet {
     private static final int HEIGHT = 300;
     private static final int FR = 6;
     private static final int PLAYER_SZ = 50;
-    private static final int GROUND = HEIGHT - PLAYER_SZ*2;
+    private static final int GROUND = HEIGHT - (int)(PLAYER_SZ*1.1);
     private static final double GRAVITY = .5;
     private Player player = new Player();
 
@@ -21,7 +21,7 @@ public class MainClass extends PApplet {
 
 //    private int xPos = 0;
 //    private int yPos = HEIGHT - (int)w - PLAYER;
-    private float left, right, up, down;
+    private float left, right, up;
 
 
     private PShape shapes[] = new PShape[SHAPES];
@@ -79,12 +79,10 @@ public class MainClass extends PApplet {
         shape(player.sprite, player.pos.x, player.pos.y);
     }
 
-    private boolean collision()
+    private boolean collision(Rectangle pRect)
     {
-        if(player.pos.x < 0 || player.pos.x > WIDTH || player.pos.y < 0 || player.pos.y > HEIGHT)
-            return true;
         for(int i = 0; i < rect.length; i++ )
-            if (player.rect.intersects(rect[i]))
+            if (pRect.intersects(rect[i]))
                 return true;
         return false;
     }
@@ -132,11 +130,14 @@ public class MainClass extends PApplet {
         nextPos.add(player.velocity);
 
         float offset = player.rect.width;
-        if(nextPos.x > 0 && nextPos.x < (width - offset))
-            player.pos.x = nextPos.x;
-        if(nextPos.y > 0 && nextPos.y < (height - offset))
-            player.pos.y = nextPos.y;
 
+        if(collision(new Rectangle((int) nextPos.x, (int) nextPos.y, PLAYER_SZ, PLAYER_SZ))) {
+            println("Collision detected");
+        }
+        if (nextPos.x > 0 && nextPos.x < (width - offset))
+            player.pos.x = nextPos.x;
+        if (nextPos.y > 0 && nextPos.y < (height - offset))
+            player.pos.y = nextPos.y;
         player.rect.x = (int) player.pos.x;
         player.rect.y = (int) player.pos.y;
 
