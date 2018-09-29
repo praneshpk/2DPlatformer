@@ -27,21 +27,6 @@ public class MainClass extends PApplet {
     private PShape shapes[] = new PShape[SHAPES];
     private Rectangle rect[] = new Rectangle[SHAPES];
 
-
-    /**
-     * Player class responsible for movement
-     *
-     * Adapted from:
-     * https://www.openprocessing.org/sketch/92234
-     */
-    protected class Player
-    {
-        PShape sprite;
-        Rectangle rect;
-        PVector pos, velocity;
-        float dir, jumpSpeed, walkSpeed;
-    }
-
     public static void main(String[] args)
     {
         PApplet.main("MainClass", args);

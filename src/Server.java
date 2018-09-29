@@ -1,6 +1,4 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,8 +14,7 @@ public class Server {
 
     private ServerSocket server;
 
-    private ArrayList<String> users = new ArrayList<>();
-    private static String log = "";
+    private ArrayList<Player> users = new ArrayList<>(MAX_USERS);
     private static Object lock = new Object();
 
     /**
@@ -37,40 +34,47 @@ public class Server {
     }
 
     public void handleClient(Socket s) throws IOException {
-        String client = "";
+        Player data = new Player();
         InetAddress ip = s.getLocalAddress();
-        DataOutputStream output = new DataOutputStream(s.getOutputStream());
-        DataInputStream input = new DataInputStream(s.getInputStream());
+        ObjectOutputStream output = new ObjectOutputStream(s.getOutputStream());
+        ObjectInputStream input = new ObjectInputStream(s.getInputStream());
         boolean fin = true;
         try {
-            client = input.readUTF();
+            System.out.println(users);
+            data = (Player) input.readObject();
             if(users.size() == MAX_USERS)
                 throw new IllegalStateException();
-            while(users.contains(client)) {
-                output.writeUTF("err");
-                client = input.readUTF();
-            }
-            users.add(client);
-            System.out.println(client + ip + " joined.");
-            log += client + " has joined the server.\n";
-            output.writeUTF(log);
-            String request = input.readUTF();
+            /* Deprecating same username check for now. */
+//            while(users.contains(data.username)) {
+//                output.writeObject(null);
+//                data = (Player) input.readObject();
+//            }
+            // Assign id based on location in list
+            data.id = users.size();
+            users.add(data);
+            System.out.println(data.username + ip + " joined.");
+
+            output.writeObject(data);
+            data = (Player) input.readObject();
             while(true) {
+                // Update server user list
                 synchronized ( lock ) {
-                    log += request + "\n";
+                    users.set(data.id, data);
                     lock.notifyAll();
                 }
-                output.writeUTF(log);
-                request = input.readUTF();
+                // Perform something. Sending back data object for now
+                output.writeObject(data);
+                data = (Player) input.readObject();
             }
         } catch (IllegalStateException e) {
-            output.writeUTF("Error: Server is full!");
             s.close();
             fin = false;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         } finally {
             if(fin) {
-                System.out.println(client + ip + " left.");
-                users.remove(client);
+                System.out.println(data.username + ip + " left.");
+                users.remove(data);
                 s.close();
             }
 

@@ -7,59 +7,55 @@ import java.util.Scanner;
 
 
 public class Client {
-    private static DataInputStream input;
-    private static DataOutputStream output;
-    public static String name;
+    private static ObjectInputStream input;
+    private static ObjectOutputStream output;
 
     public static void main(String[] args) throws IOException {
         Socket s = null;
-        String response = "";
+        Player data = new Player();
         try {
             s = new Socket(Server.HOSTNAME, Server.PORT);
-            output = new DataOutputStream(s.getOutputStream());
-            input = new DataInputStream(s.getInputStream());
+            output = new ObjectOutputStream(s.getOutputStream());
+            input = new ObjectInputStream(s.getInputStream());
 
             Scanner in = new Scanner(System.in);
+            String txt_input;
 
             System.out.print("Enter a username: ");
-            name = in.nextLine();
-            output.writeUTF(name);
-            response = input.readUTF();
-            while(response.equals("err")) {
-                System.out.print("Error: User already exists!\nEnter a username: ");
-                name = in.nextLine();
-                output.writeUTF(name);
-                response = input.readUTF();
-            }
-            if(response.contains("Error"))
+            data.username = in.nextLine();
+            output.writeObject(data);
+            data = (Player) input.readObject();
+            /* Deprecating same username check for now. */
+//            while(response != null) {
+//                System.out.print("Error: User already exists!\nEnter a username: ");
+//                data.username = in.nextLine();
+//                output.writeObject(data);
+//                response = (Player) input.readObject();
+//            }
+            if(data.equals(null))
                 throw new Exception();
-            String data = "";
             while(true) {
-                for(int i=0; i<10; i++)
-                    System.out.println("\b");
-                System.out.println(response);
+                System.out.println(data + " read");
 
-                System.out.println("Type ':q' to leave the server");
-                System.out.print(name + "> ");
-                data = in.nextLine();
-                if(data.equals(":q")) {
-                    output.writeUTF(name + " has left the chat.");
+                System.out.println("Type ':q' to leave the server, otherwise hit the return key to continue...");
+                System.out.print(data.username + "> ");
+                txt_input = in.nextLine();
+                if(txt_input.equals(":q")) {
+                    output.writeObject(data);
                     break;
                 }
                 else {
-                    output.writeUTF(name + ": " + data);
-                    response = input.readUTF();
+                    System.out.println(data + " sent");
+                    output.writeObject(data);
+                    data = (Player) input.readObject();
                 }
             }
 
         } catch(ConnectException e) {
             System.out.println("Error: Server has not been started!");
             System.exit(1);
-        } catch(SocketException e) {
-            System.out.println("Error: Server has been suspended!");
-            System.exit(1);
         } catch (Exception e) {
-            System.out.println(response);
+            System.out.println("Error: Server is full!");
             System.exit(1);
         } finally {
             System.out.println("You have left the server.");
