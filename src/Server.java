@@ -18,7 +18,7 @@ public class Server {
     private static Object lock = new Object();
 
     /**
-     Class to allow multithreading across users
+     * Class to allow multithreading across users
      */
     private class UserThread extends Thread {
         private Socket s;
@@ -33,6 +33,11 @@ public class Server {
         }
     }
 
+    /**
+     *
+     * @param s the socket to be connected to
+     * @throws IOException if socket is not successfully closed
+     */
     public void handleClient(Socket s) throws IOException {
         Player data = new Player();
         InetAddress ip = s.getLocalAddress();
@@ -44,11 +49,7 @@ public class Server {
             data = (Player) input.readObject();
             if(users.size() == MAX_USERS)
                 throw new IllegalStateException();
-            /* Deprecating same username check for now. */
-//            while(users.contains(data.username)) {
-//                output.writeObject(null);
-//                data = (Player) input.readObject();
-//            }
+
             // Assign id based on location in list
             data.id = users.size();
             users.add(data);

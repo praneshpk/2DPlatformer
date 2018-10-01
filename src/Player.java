@@ -17,5 +17,4 @@ public class Player implements Serializable {
     Rectangle rect;
     PVector pos, velocity;
     float dir, jumpSpeed, walkSpeed;
-
 }
