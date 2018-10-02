@@ -14,12 +14,11 @@ This project requires you having Maven and Java installed.
 
 ```
 mvn package
-
 ```
 
 ### Section 1: Processing
 
-For the implementation of this section of the project, run the following command
+Run the following command to view the implementation of this section
 ```
 java -cp target/multi-threaded-server-0.1.0.jar Main
 ```
@@ -28,7 +27,7 @@ Use the left and right arrow keys to move around, spacebar to jump. Collision de
 
 ### Section 2 & 3: Multi-threaded Networking
 
-For the implementation of this section, the user will need to at least start up the Server class
+The user will need to at least start up the Server class
 ```
 java -cp target/multi-threaded-server-0.1.0.jar Server
 ```
