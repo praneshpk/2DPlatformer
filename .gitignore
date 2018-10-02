@@ -36,3 +36,6 @@ dependency-reduced-pom.xml
 *.iml
 *.ipr
 out
+
+# Misc
+.DS_Store

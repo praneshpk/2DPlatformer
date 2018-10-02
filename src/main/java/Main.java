@@ -5,7 +5,7 @@ import processing.core.PVector;
 
 import java.awt.*;
 
-public class MainClass extends PApplet {
+public class Main extends PApplet {
 
     private static final int SHAPES = 20;
     private static final int WIDTH = 600;
@@ -27,24 +27,9 @@ public class MainClass extends PApplet {
     private PShape shapes[] = new PShape[SHAPES];
     private Rectangle rect[] = new Rectangle[SHAPES];
 
-
-    /**
-     * Player class responsible for movement
-     *
-     * Adapted from:
-     * https://www.openprocessing.org/sketch/92234
-     */
-    protected class Player
-    {
-        PShape sprite;
-        Rectangle rect;
-        PVector pos, velocity;
-        float dir, jumpSpeed, walkSpeed;
-    }
-
     public static void main(String[] args)
     {
-        PApplet.main("MainClass", args);
+        PApplet.main("Main", args);
     }
 
     /**
