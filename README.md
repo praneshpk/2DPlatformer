@@ -12,6 +12,7 @@ This project requires you having Maven and Java installed.
 
 ### Compiling
 
+Run the following command in the root of the project, assuming Maven is installed.
 ```
 mvn package
 ```
