@@ -5,7 +5,7 @@ import processing.core.PVector;
 
 import java.awt.*;
 
-public class MainClass extends PApplet {
+public class Main extends PApplet {
 
     private static final int SHAPES = 20;
     private static final int WIDTH = 600;
@@ -29,7 +29,7 @@ public class MainClass extends PApplet {
 
     public static void main(String[] args)
     {
-        PApplet.main("MainClass", args);
+        PApplet.main("Main", args);
     }
 
     /**
