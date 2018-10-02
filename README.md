@@ -1,1 +1,40 @@
 # Multi-threaded Server
+
+Beginning stages of creating a game engine using Processing and multi-threading
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+This project requires you having Maven and Java installed.
+
+### Compiling
+
+```
+mvn package
+
+```
+
+### Section 1: Processing
+
+For the implementation of this section of the project, run the following command
+```
+java -cp target/multi-threaded-server-0.1.0.jar Main
+```
+
+Use the left and right arrow keys to move around, spacebar to jump. Collision detection is printed in the console for now.
+
+### Section 2 & 3: Multi-threaded Networking
+
+For the implementation of this section, the user will need to at least start up the Server class
+```
+java -cp target/multi-threaded-server-0.1.0.jar Server
+```
+and then up to three Client classes can be started simultaneously.
+```
+java -cp target/multi-threaded-server-0.1.0.jar Client
+```
+
+The server can be stopped by sending a SIGINT signal, while the client can enter ':q' to exit the server.

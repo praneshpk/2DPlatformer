@@ -45,7 +45,6 @@ public class Server {
         ObjectInputStream input = new ObjectInputStream(s.getInputStream());
         boolean fin = true;
         try {
-            System.out.println(users);
             data = (Player) input.readObject();
             if(users.size() == MAX_USERS)
                 throw new IllegalStateException();
