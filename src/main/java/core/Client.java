@@ -1,3 +1,7 @@
+package core;
+
+import core.objects.Player;
+
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
@@ -36,7 +40,7 @@ public class Client {
 
             // Entering a username to data object
             System.out.print("Enter a username: ");
-            data.username = in.nextLine();
+            data.setUsername(in.nextLine());
             output.writeObject(data);
             data = (Player) input.readObject();
 
@@ -49,7 +53,7 @@ public class Client {
                 // Interaction will likely be changed
                 System.out.println(data + " read");
                 System.out.println("Type ':q' to leave the server, otherwise hit the return key to continue...");
-                System.out.print(data.username + "> ");
+                System.out.print(data.getUsername() + "> ");
                 txt_input = in.nextLine();
                 if(txt_input.equals(":q")) {
                     output.writeObject(data);

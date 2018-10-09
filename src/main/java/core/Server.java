@@ -1,3 +1,7 @@
+package core;
+
+import core.objects.Player;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -52,7 +56,7 @@ public class Server {
             // Assign id based on location in list
             data.id = users.size();
             users.add(data);
-            System.out.println(data.username + ip + " joined.");
+            System.out.println(data.getUsername() + ip + " joined.");
 
             output.writeObject(data);
             data = (Player) input.readObject();
@@ -73,7 +77,7 @@ public class Server {
             e.printStackTrace();
         } finally {
             if(fin) {
-                System.out.println(data.username + ip + " left.");
+                System.out.println(data.getUsername() + ip + " left.");
                 users.remove(data);
                 s.close();
             }
