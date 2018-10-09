@@ -15,7 +15,7 @@ import static core.GameConstants.*;
  * Adapted from:
  * https://www.openprocessing.org/sketch/92234
  */
-public class Player implements Serializable {
+public class Player implements Serializable, Collidable {
     public int id;
     public float dir, left, right, up;
 
@@ -74,6 +74,8 @@ public class Player implements Serializable {
         rect.y = (int) pos.y;
 
     }
+
+    public Rectangle getRect() { return rect; }
 
     public void display()
     {

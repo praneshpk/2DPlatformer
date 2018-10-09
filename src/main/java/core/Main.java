@@ -1,23 +1,23 @@
 package core;
 
+import core.objects.Collidable;
+import core.objects.MovingPlatform;
 import core.objects.Player;
+import core.objects.StaticPlatform;
 import processing.core.PApplet;
 import processing.core.PShape;
+import processing.core.PVector;
 
 import java.awt.*;
 
 public class Main extends PApplet implements GameConstants {
 
-
     private Player player;
 
-    private float w = WIDTH/(SHAPES/2);
+    private float w = WIDTH/(PLATFORMS/2);
     private float h = random(HEIGHT/10, HEIGHT/5);
 
-
-
-    private static PShape shapes[] = new PShape[SHAPES];
-    private static Rectangle rect[] = new Rectangle[SHAPES];
+    private static Collidable platforms[] = new Collidable[PLATFORMS];
 
     public static void main(String[] args)
     {
@@ -30,39 +30,35 @@ public class Main extends PApplet implements GameConstants {
      */
     private void setupObjects()
     {
-        // random squares
-        for(int i = 0; i < SHAPES / 2; i++) {
-            int x = (int)(w + random(0, WIDTH-w));
-            int y = (int)(HEIGHT-w - random(0, HEIGHT-h));
-            shapes[i] = createShape(RECT, x, y, w, w);
-            shapes[i].setFill(color(random(255),random(255),random(255)));
-            rect[i] = new Rectangle(x, y,(int)w,(int)w);
-            shape(shapes[i]);
+        PVector pos;
+        // Static platforms
+        for(int i = 0; i < PLATFORMS - 1; i++) {
+            pos = new PVector((int)(w + random(0, WIDTH-w)),
+                    (int)(HEIGHT-w - random(0, HEIGHT-h)));
+            platforms[i] = new StaticPlatform(this, pos,
+                    w, w, new Color((int)(Math.random() * 0x1000000)));
         }
-        // random rectangles
-        for(int i = SHAPES/2; i < SHAPES; i++ ) {
-            int x = (int)(w + random(0, WIDTH-w));
-            int y = (int)(HEIGHT-w - random(0, HEIGHT-h));
-            shapes[i] = createShape(RECT, x, y, h, w/2);
-            shapes[i].setFill(color(random(255),random(255),random(255)));
-            rect[i] = new Rectangle(x, y,(int)h,(int)w/2);
-            shape(shapes[i]);
-        }
+//        // Moving platforms
+//        for(int i = PLATFORMS/2; i < PLATFORMS; i++ ) {
+//            pos = new PVector((int)(w + random(0, WIDTH-w)),
+//                    (int)(HEIGHT-w - random(0, HEIGHT-h)));
+//            platforms[i] = new MovingPlatform(this,pos,
+//                    h, w/2, new Color((int)(Math.random() * 0x1000000)),
+//                    new PVector(0,1));
+//        }
+        pos = new PVector((int)(w + random(0, WIDTH-w*4)),
+                (int)(random(h, HEIGHT-h*4)));
+        platforms[PLATFORMS - 1] = new MovingPlatform(this,pos,
+                    50, 5, new Color((int)(Math.random() * 0x1000000)),
+                    new PVector(0,-1));
     }
     private void renderObjects()
     {
-        for(PShape s: shapes)
-            shape(s);
+        for(Collidable p: platforms)
+            p.display();
         player.display();
     }
 
-    public static boolean collision(Rectangle pRect)
-    {
-        for(int i = 0; i < rect.length; i++ )
-            if (pRect.intersects(rect[i]))
-                return true;
-        return false;
-    }
     public void settings()
     {
         size(WIDTH, HEIGHT);
@@ -77,7 +73,13 @@ public class Main extends PApplet implements GameConstants {
         setupObjects();
     }
 
-
+    public static boolean collision(Rectangle pRect)
+    {
+        for(Collidable p: platforms)
+            if (pRect.intersects(p.getRect()))
+                return true;
+        return false;
+    }
 
     /**
      * Updates player state based on keystrokes

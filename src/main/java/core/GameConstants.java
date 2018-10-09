@@ -1,7 +1,7 @@
 package core;
 
 public interface GameConstants {
-    int SHAPES = 20;
+    int PLATFORMS = 20;
     int WIDTH = 600;
     int HEIGHT = 300;
     int PLAYER_SZ = 50;
