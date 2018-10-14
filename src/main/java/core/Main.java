@@ -72,12 +72,14 @@ public class Main extends PApplet implements GameConstants {
         setupObjects();
     }
 
-    public static boolean collision(Rectangle pRect)
+    public static Collidable collision(Rectangle pRect)
     {
+//        System.out.println(pRect.getBounds());
         for(Collidable p: platforms)
             if (pRect.intersects(p.getRect()))
                 return p;
-        return false;
+        return null;
+
     }
 
     /**

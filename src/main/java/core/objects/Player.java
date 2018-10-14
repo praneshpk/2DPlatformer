@@ -63,8 +63,10 @@ public class Player implements Serializable, Collidable {
 
         float offset = rect.width;
 
-        if(Main.collision(new Rectangle((int) nextPos.x, (int) nextPos.y, PLAYER_SZ, PLAYER_SZ))) {
-            System.out.println("Collision detected");
+        Collidable collision = Main.collision(new Rectangle((int) nextPos.x,
+                (int) nextPos.y, PLAYER_SZ, PLAYER_SZ));
+        if(collision != null) {
+            System.out.println("Collision detected with " + collision);
         }
         if (nextPos.x > 0 && nextPos.x < (WIDTH - offset))
             pos.x = nextPos.x;
