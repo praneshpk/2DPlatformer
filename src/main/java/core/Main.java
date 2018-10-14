@@ -32,25 +32,24 @@ public class Main extends PApplet implements GameConstants {
     {
         PVector pos;
         // Static platforms
-        for(int i = 0; i < PLATFORMS - 1; i++) {
+        for(int i = 0; i < PLATFORMS - 4; i++) {
             pos = new PVector((int)(w + random(0, WIDTH-w)),
                     (int)(HEIGHT-w - random(0, HEIGHT-h)));
             platforms[i] = new StaticPlatform(this, pos,
                     w, w, new Color((int)(Math.random() * 0x1000000)));
         }
-//        // Moving platforms
-//        for(int i = PLATFORMS/2; i < PLATFORMS; i++ ) {
-//            pos = new PVector((int)(w + random(0, WIDTH-w)),
-//                    (int)(HEIGHT-w - random(0, HEIGHT-h)));
-//            platforms[i] = new MovingPlatform(this,pos,
-//                    h, w/2, new Color((int)(Math.random() * 0x1000000)),
-//                    new PVector(0,1));
-//        }
-        pos = new PVector((int)(w + random(0, WIDTH-w*4)),
-                (int)(random(h, HEIGHT-h*4)));
-        platforms[PLATFORMS - 1] = new MovingPlatform(this,pos,
-                    50, 5, new Color((int)(Math.random() * 0x1000000)),
-                    new PVector(0,-1));
+        platforms[PLATFORMS - 4] = new MovingPlatform(this,
+                new PVector(WIDTH/2,HEIGHT/2),
+                new PVector(-5,0));
+        platforms[PLATFORMS - 3] = new MovingPlatform(this,
+                new PVector(WIDTH/2,HEIGHT/2),
+                new PVector(5,0));
+        platforms[PLATFORMS - 2] = new MovingPlatform(this,
+                new PVector(WIDTH/2,HEIGHT/2),
+                new PVector(0,5));
+        platforms[PLATFORMS - 1] = new MovingPlatform(this,
+                new PVector(WIDTH/2,HEIGHT/2),
+                new PVector(0,-5));
     }
     private void renderObjects()
     {
@@ -77,7 +76,7 @@ public class Main extends PApplet implements GameConstants {
     {
         for(Collidable p: platforms)
             if (pRect.intersects(p.getRect()))
-                return true;
+                return p;
         return false;
     }
 
