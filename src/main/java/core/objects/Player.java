@@ -26,11 +26,12 @@ public class Player implements Serializable, Collidable {
     private PVector velocity;
     private static float jumpSpeed = 6;
     private static float walkSpeed = 3;
+    private int ground = GROUND;
 
     public Player(PApplet p)
     {
         parent = p;
-        pos = new PVector(0, 0);
+        pos = new PVector(0, GROUND);
         rect = new Rectangle((int)pos.x, (int)pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
         velocity = new PVector(0, 0);
@@ -48,12 +49,34 @@ public class Player implements Serializable, Collidable {
      */
     public void update()
     {
-        if(pos.y < GROUND)
+        Collidable collision = Main.collision(new Rectangle((int) pos.x,
+                (int) pos.y, PLAYER_SZ, PLAYER_SZ));
+        if(collision != null) {
+            Rectangle col = collision.getRect();
+
+            if(pos.y + PLAYER_SZ < col.y + 10 ) {
+                ground = (int)col.y - PLAYER_SZ;
+                pos.y = col.y - PLAYER_SZ + 1;
+                if(collision instanceof MovingPlatform) {
+                    if(((MovingPlatform) collision).getDir().x != 0) {
+                        System.out.println("moving horiz...");
+                    }
+
+                }
+            }
+//            if(pos.x + PLAYER_SZ < col.x + 5)
+//                pos.x = col.x - PLAYER_SZ ;
+        }
+        else
+            ground = GROUND;
+
+        if(pos.y < ground) {
             velocity.y += GRAVITY;
+        }
         else
             velocity.y = 0;
 
-        if(pos.y >= GROUND && up != 0)
+        if(pos.y >= ground && up != 0)
             velocity.y = -jumpSpeed;
 
         velocity.x = walkSpeed * (left + right);
@@ -61,16 +84,13 @@ public class Player implements Serializable, Collidable {
         PVector nextPos = new PVector(pos.x, pos.y);
         nextPos.add(velocity);
 
+
+
         float offset = rect.width;
 
-        Collidable collision = Main.collision(new Rectangle((int) nextPos.x,
-                (int) nextPos.y, PLAYER_SZ, PLAYER_SZ));
-        if(collision != null) {
-            System.out.println("Collision detected with " + collision);
-        }
-        if (nextPos.x > 0 && nextPos.x < (WIDTH - offset))
+        if (nextPos.x > 0 && nextPos.x < (WIDTH - PLAYER_SZ))
             pos.x = nextPos.x;
-        if (nextPos.y > 0 && nextPos.y < (HEIGHT - offset))
+        //if (nextPos.y > 0 && nextPos.y < (HEIGHT - offset))
             pos.y = nextPos.y;
         rect.x = (int) pos.x;
         rect.y = (int) pos.y;
@@ -78,6 +98,8 @@ public class Player implements Serializable, Collidable {
     }
 
     public Rectangle getRect() { return rect; }
+
+    public PVector getPos() { return pos; }
 
     public void display()
     {

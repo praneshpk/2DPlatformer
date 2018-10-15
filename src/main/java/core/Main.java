@@ -14,9 +14,6 @@ public class Main extends PApplet implements GameConstants {
 
     private Player player;
 
-    private float w = WIDTH/(PLATFORMS/2);
-    private float h = random(HEIGHT/10, HEIGHT/5);
-
     private static Collidable platforms[] = new Collidable[PLATFORMS];
 
     public static void main(String[] args)
@@ -31,30 +28,39 @@ public class Main extends PApplet implements GameConstants {
     private void setupObjects()
     {
         PVector pos;
-        // Static platforms
-        for(int i = 0; i < PLATFORMS - 4; i++) {
-            pos = new PVector((int)(w + random(0, WIDTH-w)),
-                    (int)(HEIGHT-w - random(0, HEIGHT-h)));
-            platforms[i] = new StaticPlatform(this, pos,
-                    w, w, new Color((int)(Math.random() * 0x1000000)));
-        }
-        platforms[PLATFORMS - 4] = new MovingPlatform(this,
+
+        platforms[0] = new StaticPlatform(this,
+                new PVector(100, HEIGHT - 35), 200, 35, new Color(120));
+        platforms[1] = new MovingPlatform(this,
                 new PVector(WIDTH/2,HEIGHT/2),
                 new PVector(-5,0));
-        platforms[PLATFORMS - 3] = new MovingPlatform(this,
-                new PVector(WIDTH/2,HEIGHT/2),
+        platforms[2] = new MovingPlatform(this,
+                new PVector(MV_PLATORM[0] * 4,HEIGHT/2),
                 new PVector(5,0));
-        platforms[PLATFORMS - 2] = new MovingPlatform(this,
-                new PVector(WIDTH/2,HEIGHT/2),
-                new PVector(0,5));
-        platforms[PLATFORMS - 1] = new MovingPlatform(this,
-                new PVector(WIDTH/2,HEIGHT/2),
-                new PVector(0,-5));
+        platforms[3] = new MovingPlatform(this,
+                new PVector(MV_PLATORM[0],HEIGHT -50 ),
+                new PVector(0,10));
+        platforms[4] = new MovingPlatform(this,
+                new PVector(WIDTH - 200,HEIGHT - 50),
+                new PVector(0,10));
+        // Random static platforms
+        for(int i = 5; i < PLATFORMS; i++) {
+            Collidable c;
+            do {
+                int r = (int) (random(20, 50));
+                pos = new PVector((int) random(0, WIDTH),
+                        (int) (random(0, HEIGHT)));
+                c = new StaticPlatform(this, pos,
+                        r, r,
+                        new Color((int) (Math.random() * 0x1000000)));
+            } while(collision(c.getRect()) != null);
+            platforms[i] = c;
+        }
     }
     private void renderObjects()
     {
-        for(Collidable p: platforms)
-            p.display();
+        for(int i = platforms.length - 1; i >= 0; i--)
+            platforms[i].display();
         player.display();
     }
 
@@ -76,7 +82,7 @@ public class Main extends PApplet implements GameConstants {
     {
 //        System.out.println(pRect.getBounds());
         for(Collidable p: platforms)
-            if (pRect.intersects(p.getRect()))
+            if (p != null && pRect.intersects(p.getRect()))
                 return p;
         return null;
 

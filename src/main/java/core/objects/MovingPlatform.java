@@ -7,6 +7,7 @@ import processing.core.PVector;
 import java.awt.*;
 
 public class MovingPlatform extends StaticPlatform implements Collidable, GameConstants {
+
     private PVector dir;
     private long start = System.currentTimeMillis();
     private int time;
@@ -52,4 +53,5 @@ public class MovingPlatform extends StaticPlatform implements Collidable, GameCo
         rect.y = (int) pos.y;
 
     }
+    public PVector getDir() { return dir; }
 }

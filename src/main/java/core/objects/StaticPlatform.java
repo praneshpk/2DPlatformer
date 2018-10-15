@@ -23,6 +23,8 @@ public class StaticPlatform implements Collidable {
 
     public Rectangle getRect() { return rect; }
 
+    public PVector getPos() { return pos; }
+
     public void display()
     {
         update();
