@@ -5,8 +5,9 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
+import java.io.Serializable;
 
-public class MovingPlatform extends StaticPlatform implements Collidable, GameConstants {
+public class MovingPlatform extends StaticPlatform implements Collidable, Serializable, GameConstants {
 
     private PVector dir;
     private long start = System.currentTimeMillis();
@@ -16,20 +17,19 @@ public class MovingPlatform extends StaticPlatform implements Collidable, GameCo
      * Creates a basic Moving Platform object with a random color
      * and default time value of 3s
      *
-     * @param p PApplet to draw to
      * @param pos position of the moving platform
      * @param dir direction / speed of the moving platform
      */
-    public MovingPlatform(PApplet p, PVector pos, PVector dir)
+    public MovingPlatform(PVector pos, PVector dir)
     {
-        super(p,pos,MV_PLATORM[0],MV_PLATORM[1],new Color((int)(Math.random() * 0x1000000)));
+        super(pos,MV_PLATORM[0],MV_PLATORM[1],new Color((int)(Math.random() * 0x1000000)));
         this.dir = dir;
         this.time = 3;
     }
 
     public MovingPlatform(PApplet p, PVector pos, float w, float h, Color c, PVector dir, int time)
     {
-        super(p,pos,w,h,c);
+        super(pos,w,h,c);
         this.dir = dir;
         this.time = time;
     }

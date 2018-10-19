@@ -1,6 +1,6 @@
 package core.objects;
 
-import core.Main;
+import core.GameServer;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -19,7 +19,6 @@ public class Player implements Serializable, Collidable {
     public int id;
     public float dir, left, right, up;
 
-    private PApplet parent;
     private String username;
     private Rectangle rect;
     private PVector pos;
@@ -28,17 +27,12 @@ public class Player implements Serializable, Collidable {
     private static float walkSpeed = 3;
     private int ground = GROUND;
 
-    public Player(PApplet p)
+    public Player()
     {
-        parent = p;
         pos = new PVector(0, GROUND);
         rect = new Rectangle((int)pos.x, (int)pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
         velocity = new PVector(0, 0);
-    }
-
-    public Player()
-    {
     }
 
     /**
@@ -49,7 +43,7 @@ public class Player implements Serializable, Collidable {
      */
     public void update()
     {
-        Collidable collision = Main.collision(new Rectangle((int) pos.x,
+        Collidable collision = GameServer.collision(new Rectangle((int) pos.x,
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
         if(collision != null) {
             Rectangle col = collision.getRect();
@@ -59,13 +53,11 @@ public class Player implements Serializable, Collidable {
                 pos.y = col.y - PLAYER_SZ + 1;
                 if(collision instanceof MovingPlatform) {
                     if(((MovingPlatform) collision).getDir().x != 0) {
-                        System.out.println("moving horiz...");
+//                        System.out.println("moving horiz...");
                     }
 
                 }
             }
-//            if(pos.x + PLAYER_SZ < col.x + 5)
-//                pos.x = col.x - PLAYER_SZ ;
         }
         else
             ground = GROUND;
@@ -84,8 +76,6 @@ public class Player implements Serializable, Collidable {
         PVector nextPos = new PVector(pos.x, pos.y);
         nextPos.add(velocity);
 
-
-
         float offset = rect.width;
 
         if (nextPos.x > 0 && nextPos.x < (WIDTH - PLAYER_SZ))
@@ -101,11 +91,11 @@ public class Player implements Serializable, Collidable {
 
     public PVector getPos() { return pos; }
 
-    public void display()
+    public void display(PApplet p)
     {
-        parent.fill(parent.color(id * 100 % 255));
-        parent.noStroke();
-        parent.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);
+        p.fill(p.color(id * 100 % 255));
+        p.noStroke();
+        p.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);
     }
 
     public String getUsername() { return username; }
