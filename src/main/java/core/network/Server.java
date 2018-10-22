@@ -1,5 +1,6 @@
 package core.network;
 
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -14,7 +15,6 @@ public class Server <E> {
     public static int PORT = 4096;
     public static String HOSTNAME = "127.0.0.1";
     public static int MAX_USERS = 3;
-
 
     private ServerSocket server;
     protected ArrayList<E> users;
@@ -66,7 +66,7 @@ public class Server <E> {
         data = (E) input.readObject();
     }
 
-    protected void IO() throws IOException, ClassNotFoundException {
+    protected void IO(Socket s) throws IOException, ClassNotFoundException {
         while(true) {
             // Update server user list
             synchronized ( lock ) {
@@ -88,10 +88,8 @@ public class Server <E> {
         boolean fin = true;
 
         try {
-
             initialize(s);
-
-            IO();
+            IO(s);
         } catch (IllegalStateException e) {
             s.close();
             fin = false;

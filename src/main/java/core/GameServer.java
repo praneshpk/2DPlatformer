@@ -5,6 +5,8 @@ import core.objects.Collidable;
 import core.objects.MovingPlatform;
 import core.objects.Player;
 import core.objects.StaticPlatform;
+import core.util.*;
+import core.util.Event;
 import processing.core.PVector;
 
 import java.awt.*;
@@ -16,8 +18,8 @@ import java.util.Random;
 
 public class GameServer extends Server<Player> implements GameConstants {
 
-    private static Collidable platforms[] = new Collidable[PLATFORMS];
-
+    private static volatile Collidable platforms[] = new Collidable[PLATFORMS];
+    public static volatile long start;
     /**
      * Sets up a list of randomly positioned and colored
      * shapes around the window
@@ -26,6 +28,7 @@ public class GameServer extends Server<Player> implements GameConstants {
     {
         super();
         PVector pos;
+        start = System.currentTimeMillis();
 
         platforms[0] = new StaticPlatform(new PVector(100, HEIGHT - 35),
                 200, 35, new Color(120));
@@ -47,7 +50,7 @@ public class GameServer extends Server<Player> implements GameConstants {
                 pos = new PVector(random.nextInt(WIDTH), random.nextInt(HEIGHT));
                 c = new StaticPlatform(pos, r, r,
                         new Color((int) (Math.random() * 0x1000000)));
-            } while(collision(c.getRect()) != null);
+            } while(Main.collision(c.getRect(), platforms) != null);
             platforms[i] = c;
         }
     }
@@ -56,37 +59,52 @@ public class GameServer extends Server<Player> implements GameConstants {
     {
         output = new ObjectOutputStream(s.getOutputStream());
         input = new ObjectInputStream(s.getInputStream());
-
-        // Check if server is full and accept player object
-        if(users.size() == MAX_USERS)
-            throw new IllegalStateException();
-        data = (Player) input.readObject();
-
-        // Assign id based on location in list
-        data.id = users.size();
-        users.add(data);
-        System.out.println(data.toString() + s.getLocalAddress() + " joined.");
-
-        // Send back player object with id
-        output.writeObject(data);
-
-        // Send platform information
-        output.writeObject(platforms);
-
     }
 
-    protected void IO() throws IOException, ClassNotFoundException {
+    protected void IO(Socket s) throws IOException, ClassNotFoundException {
+        Event event;
+        Player p;
         while(true) {
-            // Receive player data
-            data = (Player) input.readObject();
+            // Receive stream data
+            System.out.println("Receiving stream data from " + Thread.currentThread().getId());
+            event = (Event) input.readObject();
 
-            // Update server user list
-            synchronized ( lock ) {
-                users.set(data.id, data);
-                lock.notifyAll();
+            if(event.type == event_type.REQUEST) {
+                // Send back platforms
+                output.writeObject(new Event(event.type, platforms));
             }
-            // Perform something. Sending back data object for now
-            output.writeObject(data);
+            if(event.type == event_type.CREATE) {
+                // Check if server is full
+                if(users.size() == MAX_USERS)
+                    output.writeObject(new Event(event_type.ERROR, null));
+                else {
+                    p = (Player) event.data;
+
+                    // Assign id based on location in list
+                    p.id = users.size();
+                    users.add(p);
+                    System.out.println(p.toString() + s.getLocalAddress() + " joined.");
+
+                    // Send back player object with id
+                    output.writeObject(new Event(event.type, p));
+                }
+
+            }
+
+            if(event.type == event_type.SEND) {
+                p = (Player) event.data;
+
+                // Update player in user list
+                synchronized (lock) {
+                    users.set(p.id, p);
+                    lock.notifyAll();
+                }
+                // Send back player data
+                output.writeObject(event);
+            }
+
+
+
         }
     }
 
@@ -95,17 +113,6 @@ public class GameServer extends Server<Player> implements GameConstants {
     {
         GameServer server = new GameServer();
         server.run();
-    }
-
-
-    public static Collidable collision(Rectangle pRect)
-    {
-//        System.out.println(pRect.getBounds());
-        for(Collidable p: platforms)
-            if (p != null && pRect.intersects(p.getRect()))
-                return p;
-        return null;
-
     }
 
 

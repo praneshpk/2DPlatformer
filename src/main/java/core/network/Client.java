@@ -12,14 +12,19 @@ import java.util.Scanner;
 public class Client <E> {
     protected static String host;
     protected static int port;
-    protected static ObjectInputStream input;
-    protected static ObjectOutputStream output;
+    protected ObjectInputStream input;
+    protected ObjectOutputStream output;
+    protected static Object lock = new Object();
+
 
     public E getData() {
         return data;
     }
 
     protected E data;
+
+    public void setData(E data) { this.data = data; }
+
     protected Scanner in;
 
     public Client(String host, int port)

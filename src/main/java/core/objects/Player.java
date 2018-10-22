@@ -1,6 +1,7 @@
 package core.objects;
 
 import core.GameServer;
+import core.Main;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -43,11 +44,10 @@ public class Player implements Serializable, Collidable {
      */
     public void update()
     {
-        Collidable collision = GameServer.collision(new Rectangle((int) pos.x,
+        Collidable collision = Main.collision(new Rectangle((int) pos.x,
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
         if(collision != null) {
             Rectangle col = collision.getRect();
-
             if(pos.y + PLAYER_SZ < col.y + 10 ) {
                 ground = (int)col.y - PLAYER_SZ;
                 pos.y = col.y - PLAYER_SZ + 1;
@@ -80,7 +80,6 @@ public class Player implements Serializable, Collidable {
 
         if (nextPos.x > 0 && nextPos.x < (WIDTH - PLAYER_SZ))
             pos.x = nextPos.x;
-        //if (nextPos.y > 0 && nextPos.y < (HEIGHT - offset))
             pos.y = nextPos.y;
         rect.x = (int) pos.x;
         rect.y = (int) pos.y;

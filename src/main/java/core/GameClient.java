@@ -1,8 +1,9 @@
 package core;
 
 import core.network.Client;
-import core.objects.Collidable;
 import core.objects.Player;
+import core.util.Event;
+import core.util.event_type;
 import processing.core.PApplet;
 
 import java.io.IOException;
@@ -10,12 +11,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.util.Scanner;
 
-public class GameClient extends Client<Player> {
+public class GameClient extends Client<Player> implements GameConstants {
 
-
-    private static Collidable[] platforms;
     private PApplet p;
     private Socket s;
 
@@ -25,37 +23,38 @@ public class GameClient extends Client<Player> {
         this.p = p;
     }
 
-    public static Collidable[] getPlatforms() { return platforms; }
-
     protected void initialize(Socket s) throws Exception
     {
+        System.out.println("I/O streams initialized...");
         output = new ObjectOutputStream(s.getOutputStream());
         input = new ObjectInputStream(s.getInputStream());
 
-        // Sending a new player object
-        data = new Player();
-        output.writeObject(data);
+        // Creating a new player object
+        System.out.println("Creating a new player object...");
+        output.writeObject(new Event(event_type.CREATE, new Player()));
 
-        // Receive player object with id
-        data = (Player) input.readObject();
+        // Receiving back an event
+        Event e = (Event) input.readObject();
 
         // Throw exception if server is full
-        if(data.equals(null))
-            throw new Exception();
+        if(e.type == event_type.ERROR)
+            throw new Exception(e.data.toString());
 
-        // Receive platform information
-        platforms = (Collidable[]) input.readObject();
+        data = (Player) e.data;
     }
-    protected void IO() throws IOException, ClassNotFoundException
-    {
+    protected void IO() throws IOException, ClassNotFoundException {
         // Interaction will likely be changed
-        //while(true);
+        while(true) {
+            output.writeObject(data);
+            data = (Player) input.readObject();
+        }
     }
     public void start()
     {
         try {
             s = new Socket(host, port);
             initialize(s);
+            //IO();
         } catch(ConnectException e) {
             System.out.println("Error: Server has not been started!");
             System.exit(1);
@@ -65,10 +64,14 @@ public class GameClient extends Client<Player> {
             System.exit(1);
         }
     }
-    public Player send(Player data) throws IOException, ClassNotFoundException
-    {
-        output.writeObject(data);
-        return (Player) input.readObject();
+    public Event send(Event event) {
+        try {
+            output.writeObject(event);
+            return (Event) input.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new Event(event_type.ERROR, null);
     }
     public void close() throws IOException {
         s.close();

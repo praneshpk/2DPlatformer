@@ -10,8 +10,8 @@ import java.io.Serializable;
 public class MovingPlatform extends StaticPlatform implements Collidable, Serializable, GameConstants {
 
     private PVector dir;
-    private long start = System.currentTimeMillis();
     private int time;
+    private static long start;
 
     /**
      * Creates a basic Moving Platform object with a random color
@@ -25,6 +25,7 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Serial
         super(pos,MV_PLATORM[0],MV_PLATORM[1],new Color((int)(Math.random() * 0x1000000)));
         this.dir = dir;
         this.time = 3;
+        this.start = System.currentTimeMillis();
     }
 
     public MovingPlatform(PApplet p, PVector pos, float w, float h, Color c, PVector dir, int time)
@@ -32,6 +33,7 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Serial
         super(pos,w,h,c);
         this.dir = dir;
         this.time = time;
+        this.start = System.currentTimeMillis();
     }
 
     @Override

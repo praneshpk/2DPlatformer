@@ -3,9 +3,11 @@ package core;
 import core.network.Server;
 import core.objects.Collidable;
 import core.objects.Player;
+import core.util.Event;
+import core.util.event_type;
 import processing.core.PApplet;
 
-import java.io.IOException;
+import java.awt.*;
 import java.net.Socket;
 
 
@@ -14,12 +16,14 @@ import java.net.Socket;
  */
 public class Main extends PApplet implements GameConstants {
 
+    private GameClient client;
+    private static Collidable[] platforms;
     private Player player;
-    private static GameClient client;
+    private Event event;
 
     private void renderObjects()
     {
-        Collidable [] platforms = client.getPlatforms();
+
         for(int i = platforms.length - 1; i >= 0; i--)
             platforms[i].display(this);
         player.display(this);
@@ -34,9 +38,6 @@ public class Main extends PApplet implements GameConstants {
         // Socket for client to connect to
         Socket s = null;
 
-        // Player object
-        player = new Player();
-
         // Processing window settings
         smooth();
         noStroke();
@@ -45,7 +46,18 @@ public class Main extends PApplet implements GameConstants {
         // Initialize client
         client = new GameClient(this, Server.HOSTNAME, Server.PORT);
         client.start();
+        System.out.println("Client started");
 
+        // Get player from client
+        player = client.getData();
+        System.out.println("Player data read");
+
+        // Get platforms from client
+        Event e = client.send(new Event(event_type.REQUEST, null));
+        if(e.type == event_type.ERROR)
+            System.exit(1);
+        platforms = (Collidable[]) e.data;
+        System.out.println("setup done");
     }
 
     /**
@@ -75,7 +87,6 @@ public class Main extends PApplet implements GameConstants {
         }
         if(key == ' ')
             player.up = -1;
-
     }
 
     /**
@@ -93,18 +104,32 @@ public class Main extends PApplet implements GameConstants {
         if(key == ' ')
             player.up = 0;
     }
-    public void draw()
-    {
+    public void draw() {
         background(255);
         renderObjects();
         player.update();
-        System.out.println(player.getPos());
-        // Sends player state to network
-        try {
-            player = client.send(player);
-        } catch (Exception e) {
-            e.printStackTrace();
+        event = client.send(new Event(event_type.SEND, player));
+        if(event.type == event_type.SEND)
+            player = (Player) event.data;
+        else
+            System.out.println("Event error!");
+    }
+    public static Collidable collision(Rectangle pRect)
+    {
+        for(Collidable p: platforms) {
+            if (p != null && pRect.intersects(p.getRect()))
+                return p;
         }
+        return null;
+
+    }
+    public static Collidable collision(Rectangle pRect, Collidable[] platforms)
+    {
+        for(Collidable p: platforms) {
+            if (p != null && pRect.intersects(p.getRect()))
+                return p;
+        }
+        return null;
 
     }
 }
