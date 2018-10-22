@@ -15,6 +15,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GameServer extends Server<Player> implements GameConstants {
 
@@ -55,53 +56,73 @@ public class GameServer extends Server<Player> implements GameConstants {
         }
     }
 
-    protected void initialize(Socket s) throws IOException, ClassNotFoundException
-    {
-        output = new ObjectOutputStream(s.getOutputStream());
-        input = new ObjectInputStream(s.getInputStream());
-    }
-
-    protected void IO(Socket s) throws IOException, ClassNotFoundException {
-        Event event;
+    protected void IO(Socket s) {
+        Event[] events;
         Player p;
         while(true) {
-            // Receive stream data
-            System.out.println("Receiving stream data from " + Thread.currentThread().getId());
-            event = (Event) input.readObject();
 
-            if(event.type == event_type.REQUEST) {
-                // Send back platforms
-                output.writeObject(new Event(event.type, platforms));
-            }
-            if(event.type == event_type.CREATE) {
-                // Check if server is full
-                if(users.size() == MAX_USERS)
-                    output.writeObject(new Event(event_type.ERROR, null));
-                else {
-                    p = (Player) event.data;
+            synchronized(this)
+            {
+                try {
+                    events = new Event[input.size()];
+                    // Receive event data
+                    System.out.println("Receiving stream data from " + Thread.currentThread().getId());
+                    for (int i = 0; i < input.size(); i++) {
+                        try {
+                            events[i] = (Event) input.get(i).readObject();
+                        } catch (Exception e) {
+                            input.remove(i);
+                            output.remove(i);
+                            users.remove(i);
+                            throw new Exception();
+                        }
+                    }
 
-                    // Assign id based on location in list
-                    p.id = users.size();
-                    users.add(p);
-                    System.out.println(p.toString() + s.getLocalAddress() + " joined.");
+                    for (int i = 0; i < events.length; i++) {
+                        System.out.println(events[i]);
+                        // Platforms request
+                        if (events[i].type == event_type.REQUEST) {
+                            events[i] = new Event(events[i].type, platforms);
+                        }
 
-                    // Send back player object with id
-                    output.writeObject(new Event(event.type, p));
+                        // Create new player
+                        if (events[i].type == event_type.CREATE) {
+                            // Check if server is full
+                            if (users.size() == MAX_USERS)
+                                events[i] = new Event(event_type.ERROR, null);
+                            else {
+                                p = (Player) events[i].data;
+
+                                // Assign id based on location in list
+                                p.id = users.size();
+                                users.add(p);
+                                System.out.println(p.toString() + s.getLocalAddress() + " joined.");
+
+                                // Send back player object with id
+                                events[i] = new Event(events[i].type, p);
+                            }
+                        }
+
+                        // Update player
+                        if (events[i].type == event_type.SEND) {
+                            p = (Player) events[i].data;
+
+                            // Update player in user list
+                            synchronized (lock) {
+                                users.set(p.id, p);
+                                lock.notifyAll();
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < output.size(); i++) {
+                        output.get(i).writeObject(events[i]);
+                    }
+                } catch (Exception e) {
+                    break;
                 }
-
             }
 
-            if(event.type == event_type.SEND) {
-                p = (Player) event.data;
-
-                // Update player in user list
-                synchronized (lock) {
-                    users.set(p.id, p);
-                    lock.notifyAll();
-                }
-                // Send back player data
-                output.writeObject(event);
-            }
 
 
 

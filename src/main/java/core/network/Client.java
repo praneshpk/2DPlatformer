@@ -9,7 +9,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Client <E> {
+public abstract class Client <E> {
     protected static String host;
     protected static int port;
     protected ObjectInputStream input;

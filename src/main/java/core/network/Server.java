@@ -1,14 +1,13 @@
 package core.network;
 
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Server <E> {
+public abstract class Server <E> {
 
     protected static Object lock = new Object();
 
@@ -19,8 +18,8 @@ public class Server <E> {
     private ServerSocket server;
     protected ArrayList<E> users;
     protected E data;
-    protected ObjectOutputStream output;
-    protected ObjectInputStream input;
+    protected static CopyOnWriteArrayList<ObjectOutputStream> output;
+    protected static CopyOnWriteArrayList<ObjectInputStream> input;
 
     /**
      * Class to allow multithreading across users
@@ -44,40 +43,7 @@ public class Server <E> {
         users = new ArrayList<>(MAX_USERS);
     }
 
-    public Server(int max, ArrayList<E> users)
-    {
-        MAX_USERS = max;
-        this.users = users;
-
-    }
-
-    protected void initialize(Socket s) throws IOException, ClassNotFoundException {
-        output = new ObjectOutputStream(s.getOutputStream());
-        input = new ObjectInputStream(s.getInputStream());
-
-        data = (E) input.readObject();
-        if(users.size() == MAX_USERS)
-            throw new IllegalStateException();
-
-        // Assign id based on location in list
-        users.add(data);
-        System.out.println(data.toString() + s.getLocalAddress() + " joined.");
-
-        data = (E) input.readObject();
-    }
-
-    protected void IO(Socket s) throws IOException, ClassNotFoundException {
-        while(true) {
-            // Update server user list
-            synchronized ( lock ) {
-                // boiler plate for modifying user list
-                lock.notifyAll();
-            }
-            // Perform something. Sending back data object for now
-            output.writeObject(data);
-            data = (E) input.readObject();
-        }
-    }
+    protected abstract void IO(Socket s) throws IOException, ClassNotFoundException;
 
     /**
      *
@@ -85,23 +51,19 @@ public class Server <E> {
      * @throws IOException if socket is not successfully closed
      */
     public void handleClient(Socket s) throws IOException {
-        boolean fin = true;
-
         try {
-            initialize(s);
+            synchronized(this)
+            {
+                output.add(new ObjectOutputStream(s.getOutputStream()));
+                input.add(new ObjectInputStream(s.getInputStream()));
+            }
             IO(s);
-        } catch (IllegalStateException e) {
-            s.close();
-            fin = false;
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if(fin) {
-                System.out.println(data.toString() + s.getLocalAddress() + " left.");
-                users.remove(data);
-                s.close();
-            }
-
+            System.out.println(data.toString() + s.getLocalAddress() + " left.");
+            users.remove(data);
+            s.close();
         }
 
     }
@@ -115,6 +77,10 @@ public class Server <E> {
             System.exit(1);
         }
         System.out.println("Server started on " + server.getLocalSocketAddress());
+
+        input = new CopyOnWriteArrayList<>();
+        output = new CopyOnWriteArrayList<>();
+
         try {
             while(true) {
                 Socket s = server.accept();
