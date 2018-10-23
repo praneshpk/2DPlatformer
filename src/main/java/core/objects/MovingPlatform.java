@@ -5,9 +5,8 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
-import java.io.Serializable;
 
-public class MovingPlatform extends StaticPlatform implements Collidable, Serializable, GameConstants {
+public class MovingPlatform extends StaticPlatform implements Collidable, GameConstants {
 
     private PVector dir;
     private int time;
