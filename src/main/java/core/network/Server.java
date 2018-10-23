@@ -18,8 +18,8 @@ public abstract class Server <E> {
     private ServerSocket server;
     protected ArrayList<E> users;
     protected E data;
-    protected static CopyOnWriteArrayList<ObjectOutputStream> output;
-    protected static CopyOnWriteArrayList<ObjectInputStream> input;
+    protected ObjectOutputStream output;
+    protected ObjectInputStream input;
 
     /**
      * Class to allow multithreading across users
@@ -52,11 +52,8 @@ public abstract class Server <E> {
      */
     public void handleClient(Socket s) throws IOException {
         try {
-            synchronized(this)
-            {
-                output.add(new ObjectOutputStream(s.getOutputStream()));
-                input.add(new ObjectInputStream(s.getInputStream()));
-            }
+            output = new ObjectOutputStream(s.getOutputStream());
+            input = new ObjectInputStream(s.getInputStream());
             IO(s);
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,9 +74,6 @@ public abstract class Server <E> {
             System.exit(1);
         }
         System.out.println("Server started on " + server.getLocalSocketAddress());
-
-        input = new CopyOnWriteArrayList<>();
-        output = new CopyOnWriteArrayList<>();
 
         try {
             while(true) {

@@ -103,16 +103,18 @@ public class Main extends PApplet implements GameConstants {
             player.right = 0;
         if(key == ' ')
             player.up = 0;
-    }
-    public void draw() {
-        background(255);
-        renderObjects();
-        player.update();
+
         event = client.send(new Event(event_type.SEND, player));
         if(event.type == event_type.SEND)
             player = (Player) event.data;
         else
             System.out.println("Event error!");
+    }
+    public void draw() {
+        background(255);
+        renderObjects();
+        player.update();
+
     }
     public static Collidable collision(Rectangle pRect)
     {

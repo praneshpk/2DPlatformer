@@ -12,4 +12,8 @@ public class Event implements Serializable {
         this.data = data;
     }
 
+    @Override
+    public String toString() {
+        return "Event[type:" + type + ", data:" + data + "]";
+    }
 }

@@ -28,13 +28,16 @@ public class GameClient extends Client<Player> implements GameConstants {
         System.out.println("I/O streams initialized...");
         output = new ObjectOutputStream(s.getOutputStream());
         input = new ObjectInputStream(s.getInputStream());
+        Event e;
 
-        // Creating a new player object
-        System.out.println("Creating a new player object...");
-        output.writeObject(new Event(event_type.CREATE, new Player()));
+        synchronized (this) {
+            // Creating a new player object
+            System.out.println("Creating a new player object...");
+            output.writeObject(new Event(event_type.CREATE, new Player()));
 
-        // Receiving back an event
-        Event e = (Event) input.readObject();
+            // Receiving back an event
+            e = (Event) input.readObject();
+        }
 
         // Throw exception if server is full
         if(e.type == event_type.ERROR)
@@ -42,19 +45,14 @@ public class GameClient extends Client<Player> implements GameConstants {
 
         data = (Player) e.data;
     }
-    protected void IO() throws IOException, ClassNotFoundException {
-        // Interaction will likely be changed
-        while(true) {
-            output.writeObject(data);
-            data = (Player) input.readObject();
-        }
+    protected void IO() {
+
     }
     public void start()
     {
         try {
             s = new Socket(host, port);
             initialize(s);
-            //IO();
         } catch(ConnectException e) {
             System.out.println("Error: Server has not been started!");
             System.exit(1);
@@ -64,14 +62,16 @@ public class GameClient extends Client<Player> implements GameConstants {
             System.exit(1);
         }
     }
-    public Event send(Event event) {
+    public synchronized Event send(Event event) {
+        Event ret;
         try {
             output.writeObject(event);
-            return (Event) input.readObject();
+            ret = (Event) input.readObject();
         } catch (Exception e) {
             e.printStackTrace();
+            ret = new Event(event_type.ERROR, null);
         }
-        return new Event(event_type.ERROR, null);
+        return ret;
     }
     public void close() throws IOException {
         s.close();

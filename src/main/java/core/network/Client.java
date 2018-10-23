@@ -14,7 +14,6 @@ public abstract class Client <E> {
     protected static int port;
     protected ObjectInputStream input;
     protected ObjectOutputStream output;
-    protected static Object lock = new Object();
 
 
     public E getData() {
@@ -33,48 +32,9 @@ public abstract class Client <E> {
         this.port = port;
     }
 
-    protected void initialize(Socket s) throws Exception
-    {
-        output = new ObjectOutputStream(s.getOutputStream());
-        input = new ObjectInputStream(s.getInputStream());
+    protected abstract void initialize(Socket s) throws Exception;
 
-        data = null;
-        in = new Scanner(System.in);
-
-        // Entering a username to data object
-        System.out.print("Enter a username: ");
-        ((Player) data).setUsername(in.nextLine());
-        output.writeObject(data);
-
-        // Receive player object with id
-        data = (E) input.readObject();
-
-        // Return false if server is full
-        if(data.equals(null))
-            throw new Exception();
-
-        // Receive platform information
-        // platforms = (Collidable[]) input.readObject();
-    }
-
-    protected void IO() throws IOException, ClassNotFoundException
-    {
-        // Interaction will likely be changed
-        while(true) {
-            System.out.println(data + " read");
-            System.out.println("Type ':q' to leave the server, otherwise hit the return key to continue...");
-            System.out.print(((Player) data).getUsername() + "> ");
-            String txt_input = in.nextLine();
-            if (txt_input.equals(":q")) {
-                output.writeObject(data);
-                break;
-            } else {
-                System.out.println(data + " sent");
-                output.writeObject(data);
-                data = (E) input.readObject();
-            }
-        }
-    }
+    protected abstract void IO();
 
     public void start()
     {
