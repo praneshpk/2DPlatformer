@@ -6,21 +6,20 @@ import core.util.Event;
 import core.util.event_type;
 import processing.core.PApplet;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class GameClient extends Client implements GameConstants {
 
     private PApplet p;
     private Socket s;
 
-    public GameClient(PApplet p, String host, int port)
+    public GameClient(String host, int port)
     {
         super(host, port);
-        this.p = p;
     }
 
     protected void initialize(Socket s) throws Exception
@@ -41,7 +40,7 @@ public class GameClient extends Client implements GameConstants {
 
         // Throw exception if server is full
         if(e.type == event_type.ERROR)
-            throw new Exception(e.data.toString());
+            throw new IllegalStateException(e.data.toString());
 
         player = (Player) e.data;
     }
@@ -56,24 +55,28 @@ public class GameClient extends Client implements GameConstants {
         } catch(ConnectException e) {
             System.out.println("Error: Server has not been started!");
             System.exit(1);
+        } catch (IllegalStateException e) {
+            System.out.println("Error: Server is full!");
+            System.exit(1);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error: Server is full!");
             System.exit(1);
         }
     }
     public synchronized Event send(Event event) {
-        Event ret;
+        Event ret = null;
         try {
+            System.out.println(event);
             output.writeObject(event);
+            output.flush();
             ret = (Event) input.readObject();
+        } catch (SocketException e) {
+            System.out.println("Error: Server has been stopped");
+            System.exit(1);
         } catch (Exception e) {
             e.printStackTrace();
             ret = new Event(event_type.ERROR, null);
         }
         return ret;
-    }
-    public void close() throws IOException {
-        s.close();
     }
 }

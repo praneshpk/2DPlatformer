@@ -2,10 +2,8 @@ package core.network;
 
 import core.objects.Player;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -33,30 +31,5 @@ public abstract class Client {
         return player;
     }
 
-    public void start()
-    {
-        // Socket for client to connect to
-        Socket s = null;
-
-        try {
-            s = new Socket(host, port);
-            initialize(s);
-            IO();
-
-        } catch(ConnectException e) {
-            System.out.println("Error: Server has not been started!");
-            System.exit(1);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Error: Server is full!");
-            System.exit(1);
-        } finally {
-            System.out.println("You have left the server.");
-            try {
-                s.close();
-            } catch (IOException e) {
-                System.out.println("An error occurred while closing the network socket");
-            }
-        }
-    }
+    public abstract void start();
 }

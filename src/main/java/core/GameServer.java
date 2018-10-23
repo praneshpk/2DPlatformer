@@ -15,7 +15,6 @@ import java.util.Random;
 
 public class GameServer extends Server implements GameConstants {
 
-    private ServerSocket server;
     public static volatile long start;
 
     /**
@@ -24,8 +23,8 @@ public class GameServer extends Server implements GameConstants {
      */
     public GameServer()
     {
+        super();
         platforms = new Collidable[PLATFORMS];
-        users = new Hashtable<>();
         PVector pos;
         start = System.currentTimeMillis();
 
@@ -54,38 +53,10 @@ public class GameServer extends Server implements GameConstants {
         }
     }
 
-    public void run()
-    {
-        try {
-            server = new ServerSocket(PORT);
-        } catch( Exception e ) {
-            System.err.println("Can't initialize server: " + e);
-            System.exit(1);
-        }
-        System.out.println("Server started on " + server.getLocalSocketAddress());
-
-        try {
-            while(true) {
-                Socket s = server.accept();
-                NetworkThread t = new NetworkThread(s);
-                t.start();
-            }
-        } catch ( Exception e ){
-            System.err.println("Error accepting client " + e);
-        } finally {
-
-            try {
-                server.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public static void main(String[] args)
     {
         GameServer server = new GameServer();
-        server.run();
+        server.listen();
     }
 
 

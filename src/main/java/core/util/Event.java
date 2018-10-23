@@ -5,9 +5,9 @@ import java.io.Serializable;
 public class Event implements Serializable {
 
     public event_type type;
-    public Object data;
+    public Serializable data;
 
-    public Event(event_type type, Object data) {
+    public Event(event_type type, Serializable data) {
         this.type = type;
         this.data = data;
     }

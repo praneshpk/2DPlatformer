@@ -9,8 +9,8 @@ import processing.core.PApplet;
 
 import java.awt.*;
 import java.net.Socket;
-import java.util.Hashtable;
-import java.util.UUID;
+import java.util.*;
+import java.util.List;
 
 
 /**
@@ -22,14 +22,14 @@ public class Main extends PApplet implements GameConstants {
     private static Collidable[] platforms;
     private Player player;
     private Event event;
-    private Hashtable<UUID, Player> users;
+    private ArrayList<Player> users;
 
     private void renderObjects()
     {
 
         for(int i = platforms.length - 1; i >= 0; i--)
             platforms[i].display(this);
-        for(Player p : users.values())
+        for(Player p : users)
             p.display(this);
     }
 
@@ -48,7 +48,7 @@ public class Main extends PApplet implements GameConstants {
         fill(0,255,0);
 
         // Initialize client
-        client = new GameClient(this, Server.HOSTNAME, Server.PORT);
+        client = new GameClient(Server.HOSTNAME, Server.PORT);
         client.start();
         System.out.println("Client started");
 
@@ -66,7 +66,7 @@ public class Main extends PApplet implements GameConstants {
         event = client.send(new Event(event_type.REQUEST, "users".hashCode()));
         if(event.type == event_type.ERROR)
             System.exit(1);
-        users = (Hashtable) event.data;
+        users = (ArrayList) event.data;
 
         System.out.println("setup done");
     }
@@ -114,17 +114,16 @@ public class Main extends PApplet implements GameConstants {
             player.right = 0;
         if(key == ' ')
             player.up = 0;
-
-        event = client.send(new Event(event_type.SEND, player));
-        if(event.type == event_type.SEND)
-            users = (Hashtable) event.data;
-        else
-            System.out.println("Event error!");
     }
     public void draw() {
         background(255);
         renderObjects();
         player.update();
+        Event ev = new Event(event_type.SEND, player);
+        event = client.send(ev);
+        if(event.type == event_type.SEND)
+            users = (ArrayList) event.data;
+        System.out.println("Received " + event + " from server");
 
     }
     public static Collidable collision(Rectangle pRect)

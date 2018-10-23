@@ -100,6 +100,6 @@ public class Player implements Serializable, Collidable {
 
     @Override
     public String toString() {
-        return id.toString().substring(0,8);
+        return "id:" + id.toString().substring(0,8) + " pos:" + pos;
     }
 }
