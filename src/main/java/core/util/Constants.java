@@ -1,9 +1,9 @@
-package core;
+package core.util;
 
-public interface GameConstants {
-    int PLATFORMS = 20;
-    int WIDTH = 600;
-    int HEIGHT = 300;
+public interface Constants {
+    int PLATFORMS = 40;
+    int WIDTH = 800;
+    int HEIGHT = 400;
     int PLAYER_SZ = 50;
     int GROUND = HEIGHT - PLAYER_SZ - 1;
     float GRAVITY = .5f;

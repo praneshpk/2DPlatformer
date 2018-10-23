@@ -1,51 +1,43 @@
 package core.objects;
 
-import core.GameConstants;
-import processing.core.PApplet;
+import core.util.Constants;
 import processing.core.PVector;
 
 import java.awt.*;
 
-public class MovingPlatform extends StaticPlatform implements Collidable, GameConstants {
+public class MovingPlatform extends StaticPlatform implements Collidable, Constants {
 
-    private PVector dir;
-    private long start = System.currentTimeMillis();
-    private int time;
+    private PVector lo, hi, dir;
+    private float time;
+
 
     /**
      * Creates a basic Moving Platform object with a random color
      * and default time value of 3s
      *
-     * @param p PApplet to draw to
      * @param pos position of the moving platform
      * @param dir direction / speed of the moving platform
      */
-    public MovingPlatform(PApplet p, PVector pos, PVector dir)
+    public MovingPlatform(PVector pos, PVector dir)
     {
-        super(p,pos,MV_PLATORM[0],MV_PLATORM[1],new Color((int)(Math.random() * 0x1000000)));
+        super(pos,MV_PLATORM[0],MV_PLATORM[1],new Color((int)(Math.random() * 0x1000000)));
         this.dir = dir;
         this.time = 3;
-    }
-
-    public MovingPlatform(PApplet p, PVector pos, float w, float h, Color c, PVector dir, int time)
-    {
-        super(p,pos,w,h,c);
-        this.dir = dir;
-        this.time = time;
+        this.lo = new PVector(pos.x, pos.y);
+        this.hi = new PVector(pos.x - dir.x * time, pos.y - dir.y * time);
     }
 
     @Override
-    public void update()
+    public void update(long cycle)
     {
-        long elapsed = (System.currentTimeMillis() - start)/1000;
+        float elapsed = cycle%(time*2*1000)/1000f;
         if(elapsed < time) {
-            pos.x -= dir.x/10;
-            pos.y -= dir.y/10;
-        } else if(elapsed >= time && elapsed < time * 2) {
-            pos.x += dir.x/10;
-            pos.y += dir.y/10;
-        } else {
-            start = System.currentTimeMillis();
+            pos.x = lo.x - (dir.x * elapsed );
+            pos.y = lo.y - (dir.y * elapsed );
+        }
+        if(elapsed >= time && elapsed <= time * 2) {
+            pos.x = hi.x + (dir.x * (elapsed%time) );
+            pos.y = hi.y + (dir.y * (elapsed%time) );
         }
 
         // Update hitbox

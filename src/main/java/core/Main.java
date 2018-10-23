@@ -1,67 +1,37 @@
 package core;
 
+import core.network.Client;
+import core.network.Server;
 import core.objects.Collidable;
-import core.objects.MovingPlatform;
 import core.objects.Player;
-import core.objects.StaticPlatform;
+import core.util.Constants;
+import core.util.Event;
+import core.util.event_type;
 import processing.core.PApplet;
-import processing.core.PShape;
-import processing.core.PVector;
 
 import java.awt.*;
+import java.net.Socket;
+import java.util.*;
 
-public class Main extends PApplet implements GameConstants {
 
+/**
+ * Class to connect to Server object
+ */
+public class Main extends PApplet implements Constants {
+
+    private Client client;
+    private static Collidable[] platforms;
     private Player player;
+    private Event event;
+    private ArrayList<Player> users;
 
-    private static Collidable platforms[] = new Collidable[PLATFORMS];
-
-    public static void main(String[] args)
-    {
-        PApplet.main("core.Main", args);
-    }
-
-    /**
-     * Sets up a list of randomly positioned and colored
-     * shapes around the window
-     */
-    private void setupObjects()
-    {
-        PVector pos;
-
-        platforms[0] = new StaticPlatform(this,
-                new PVector(100, HEIGHT - 35), 200, 35, new Color(120));
-        platforms[1] = new MovingPlatform(this,
-                new PVector(WIDTH/2,HEIGHT/2),
-                new PVector(-5,0));
-        platforms[2] = new MovingPlatform(this,
-                new PVector(MV_PLATORM[0] * 4,HEIGHT/2),
-                new PVector(5,0));
-        platforms[3] = new MovingPlatform(this,
-                new PVector(MV_PLATORM[0],HEIGHT -50 ),
-                new PVector(0,10));
-        platforms[4] = new MovingPlatform(this,
-                new PVector(WIDTH - 200,HEIGHT - 50),
-                new PVector(0,10));
-        // Random static platforms
-        for(int i = 5; i < PLATFORMS; i++) {
-            Collidable c;
-            do {
-                int r = (int) (random(20, 50));
-                pos = new PVector((int) random(0, WIDTH),
-                        (int) (random(0, HEIGHT)));
-                c = new StaticPlatform(this, pos,
-                        r, r,
-                        new Color((int) (Math.random() * 0x1000000)));
-            } while(collision(c.getRect()) != null);
-            platforms[i] = c;
-        }
-    }
     private void renderObjects()
     {
+
         for(int i = platforms.length - 1; i >= 0; i--)
-            platforms[i].display();
-        player.display();
+            platforms[i].display(this, client.getServerTime());
+        for(Player p : users)
+            p.display(this, 0);
     }
 
     public void settings()
@@ -70,22 +40,41 @@ public class Main extends PApplet implements GameConstants {
     }
     public void setup()
     {
-        player = new Player(this);
+        // Socket for client to connect to
+        Socket s = null;
 
+        // Processing window settings
         smooth();
         noStroke();
         fill(0,255,0);
-        setupObjects();
+
+        // Initialize client
+        client = new Client(Server.HOSTNAME, Server.PORT);
+        client.start();
+
+        // Get player from client
+        player = client.getPlayer();
+
+        // Get platforms from client
+        event = client.send(new Event(event_type.REQUEST, "platforms".hashCode()), false);
+        if(event.type == event_type.ERROR)
+            System.exit(1);
+        platforms = (Collidable[]) event.data;
+
+        // Get user list from client
+        event = client.send(new Event(event_type.REQUEST, "users".hashCode()), false);
+        if(event.type == event_type.ERROR)
+            System.exit(1);
+        users = (ArrayList) event.data;
     }
 
-    public static Collidable collision(Rectangle pRect)
+    /**
+     * Run the client program
+     */
+    public static void main(String[] args)
     {
-//        System.out.println(pRect.getBounds());
-        for(Collidable p: platforms)
-            if (p != null && pRect.intersects(p.getRect()))
-                return p;
-        return null;
-
+        // Initialize PApplet
+        PApplet.main("core.Main", args);
     }
 
     /**
@@ -106,7 +95,6 @@ public class Main extends PApplet implements GameConstants {
         }
         if(key == ' ')
             player.up = -1;
-
     }
 
     /**
@@ -124,10 +112,31 @@ public class Main extends PApplet implements GameConstants {
         if(key == ' ')
             player.up = 0;
     }
-    public void draw()
-    {
+    public void draw() {
         background(255);
         renderObjects();
-        player.update();
+        player.update(0);
+        event = client.send(new Event(event_type.SEND, player), true);
+        if(event.type == event_type.SEND)
+            users = (ArrayList) event.data;
+    }
+    public static Collidable collision(Rectangle pRect)
+    {
+        for(Collidable p: platforms) {
+            if (p != null && pRect.intersects(p.getRect()))
+                return p;
+        }
+        return null;
+
+    }
+    public static Collidable collision(Rectangle pRect, Collidable[] platforms)
+    {
+        for(Collidable p: platforms) {
+            if (p != null && pRect.intersects(p.getRect()))
+                return p;
+        }
+        return null;
+
     }
 }
+

@@ -1,123 +1,56 @@
 package core;
 
-import core.objects.Player;
+import core.objects.Collidable;
+import core.objects.MovingPlatform;
+import core.objects.StaticPlatform;
+import core.util.Constants;
+import processing.core.PVector;
 
-import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.awt.*;
+import java.util.Random;
 
-
-public class Server {
-
-    public static int PORT = 4096;
-    public static String HOSTNAME = "127.0.0.1";
-    public static int MAX_USERS = 3;
-
-    private ServerSocket server;
-
-    private ArrayList<Player> users = new ArrayList<>(MAX_USERS);
-    private static Object lock = new Object();
+public class Server extends core.network.Server implements Constants {
 
     /**
-     * Class to allow multithreading across users
+     * Sets up a list of randomly positioned and colored
+     * shapes around the window
      */
-    private class UserThread extends Thread {
-        private Socket s;
-        public UserThread(Socket s) {
-            this.s = s;
-        }
-        public void run() {
-            try {
-                handleClient(s);
-            } catch (Exception e) {
-            }
-        }
-    }
-
-    /**
-     *
-     * @param s the socket to be connected to
-     * @throws IOException if socket is not successfully closed
-     */
-    public void handleClient(Socket s) throws IOException {
-        Player data = new Player();
-        InetAddress ip = s.getLocalAddress();
-        ObjectOutputStream output = new ObjectOutputStream(s.getOutputStream());
-        ObjectInputStream input = new ObjectInputStream(s.getInputStream());
-        boolean fin = true;
-        try {
-            data = (Player) input.readObject();
-            if(users.size() == MAX_USERS)
-                throw new IllegalStateException();
-
-            // Assign id based on location in list
-            data.id = users.size();
-            users.add(data);
-            System.out.println(data.getUsername() + ip + " joined.");
-
-            output.writeObject(data);
-            data = (Player) input.readObject();
-            while(true) {
-                // Update server user list
-                synchronized ( lock ) {
-                    users.set(data.id, data);
-                    lock.notifyAll();
-                }
-                // Perform something. Sending back data object for now
-                output.writeObject(data);
-                data = (Player) input.readObject();
-            }
-        } catch (IllegalStateException e) {
-            s.close();
-            fin = false;
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            if(fin) {
-                System.out.println(data.getUsername() + ip + " left.");
-                users.remove(data);
-                s.close();
-            }
-
-        }
-
-    }
-
-    private void run()
+    public Server()
     {
-        try {
-            server = new ServerSocket(PORT);
-        } catch( Exception e ) {
-            System.err.println("Can't initialize server: " + e);
-            System.exit(1);
-        }
-        Scanner in = new Scanner(System.in);
-        String input = "";
-        System.out.println("Server started on " + server.getLocalSocketAddress());
-        try {
-            while(true) {
-                Socket s = server.accept();
-                UserThread t = new UserThread(s);
-                t.start();
-            }
-        } catch ( Exception e ){
-            System.err.println("Error accepting client " + e);
-        } finally {
+        super();
+        platforms = new Collidable[PLATFORMS];
+        PVector pos;
 
-            try {
-                server.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        platforms[0] = new StaticPlatform(new PVector(100, HEIGHT - 35),
+                200, 35, new Color(120));
+        platforms[1] = new MovingPlatform(new PVector(WIDTH/2,HEIGHT/2),
+                new PVector(-35,0));
+        platforms[2] = new MovingPlatform(new PVector(MV_PLATORM[0] * 4,HEIGHT/2),
+                new PVector(35,0));
+        platforms[3] = new MovingPlatform(new PVector(MV_PLATORM[0],HEIGHT -50 ),
+                new PVector(0,50));
+        platforms[4] = new MovingPlatform(new PVector(WIDTH - 200,HEIGHT - 50),
+                new PVector(0,50));
+
+        // Random static platforms
+        for(int i = 5; i < PLATFORMS; i++) {
+            Collidable c;
+            Random random = new Random();
+            do {
+                int r = random.nextInt(30) + 20;
+                pos = new PVector(random.nextInt(WIDTH), random.nextInt(HEIGHT));
+                c = new StaticPlatform(pos, r, r,
+                        new Color((int) (Math.random() * 0x1000000)));
+            } while(Main.collision(c.getRect(), platforms) != null);
+            platforms[i] = c;
         }
     }
+
     public static void main(String[] args)
     {
         Server server = new Server();
-        server.run();
+        server.listen();
     }
+
 
 }

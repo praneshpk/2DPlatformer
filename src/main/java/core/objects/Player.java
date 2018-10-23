@@ -5,9 +5,9 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
-import java.io.Serializable;
+import java.util.UUID;
 
-import static core.GameConstants.*;
+import static core.util.Constants.*;
 
 /**
  * Player class responsible for movement
@@ -15,12 +15,10 @@ import static core.GameConstants.*;
  * Adapted from:
  * https://www.openprocessing.org/sketch/92234
  */
-public class Player implements Serializable, Collidable {
-    public int id;
+public class Player implements Collidable {
+    public UUID id;
     public float dir, left, right, up;
 
-    private PApplet parent;
-    private String username;
     private Rectangle rect;
     private PVector pos;
     private PVector velocity;
@@ -28,17 +26,13 @@ public class Player implements Serializable, Collidable {
     private static float walkSpeed = 3;
     private int ground = GROUND;
 
-    public Player(PApplet p)
+    public Player()
     {
-        parent = p;
+        id = UUID.randomUUID();
         pos = new PVector(0, GROUND);
         rect = new Rectangle((int)pos.x, (int)pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
         velocity = new PVector(0, 0);
-    }
-
-    public Player()
-    {
     }
 
     /**
@@ -47,25 +41,22 @@ public class Player implements Serializable, Collidable {
      * Adapted from
      * https://www.openprocessing.org/sketch/92234
      */
-    public void update()
+    public void update(long cycle)
     {
         Collidable collision = Main.collision(new Rectangle((int) pos.x,
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
         if(collision != null) {
             Rectangle col = collision.getRect();
-
             if(pos.y + PLAYER_SZ < col.y + 10 ) {
                 ground = (int)col.y - PLAYER_SZ;
                 pos.y = col.y - PLAYER_SZ + 1;
                 if(collision instanceof MovingPlatform) {
                     if(((MovingPlatform) collision).getDir().x != 0) {
-                        System.out.println("moving horiz...");
+//                        System.out.println("moving horiz...");
                     }
 
                 }
             }
-//            if(pos.x + PLAYER_SZ < col.x + 5)
-//                pos.x = col.x - PLAYER_SZ ;
         }
         else
             ground = GROUND;
@@ -83,14 +74,9 @@ public class Player implements Serializable, Collidable {
 
         PVector nextPos = new PVector(pos.x, pos.y);
         nextPos.add(velocity);
-
-
-
-        float offset = rect.width;
-
+        
         if (nextPos.x > 0 && nextPos.x < (WIDTH - PLAYER_SZ))
             pos.x = nextPos.x;
-        //if (nextPos.y > 0 && nextPos.y < (HEIGHT - offset))
             pos.y = nextPos.y;
         rect.x = (int) pos.x;
         rect.y = (int) pos.y;
@@ -101,14 +87,15 @@ public class Player implements Serializable, Collidable {
 
     public PVector getPos() { return pos; }
 
-    public void display()
+    public void display(PApplet p, long cycle)
     {
-        parent.fill(parent.color(id * 100 % 255));
-        parent.noStroke();
-        parent.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);
+        p.fill(p.color(id.hashCode() * 100 % 255));
+        p.noStroke();
+        p.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);
     }
 
-    public String getUsername() { return username; }
-
-    public void setUsername(String username) { this.username = username; }
+    @Override
+    public String toString() {
+        return "Player-" + id.toString().substring(0,8);
+    }
 }
