@@ -32,10 +32,10 @@ public class GameClient extends Client implements GameConstants {
         synchronized (this) {
             // Creating a new player object
             System.out.println("Creating a new player object...");
-            output.writeObject(new Event(event_type.CREATE, new Player()));
+            output.writeUnshared(new Event(event_type.CREATE, new Player()));
 
             // Receiving back an event
-            e = (Event) input.readObject();
+            e = (Event) input.readUnshared();
         }
 
         // Throw exception if server is full
@@ -67,8 +67,8 @@ public class GameClient extends Client implements GameConstants {
         Event ret = null;
         try {
             System.out.println(event);
+            output.reset();
             output.writeObject(event);
-            output.flush();
             ret = (Event) input.readObject();
         } catch (SocketException e) {
             System.out.println("Error: Server has been stopped");

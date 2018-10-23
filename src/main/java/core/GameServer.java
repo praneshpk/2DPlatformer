@@ -7,10 +7,6 @@ import core.objects.StaticPlatform;
 import processing.core.PVector;
 
 import java.awt.*;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Hashtable;
 import java.util.Random;
 
 public class GameServer extends Server implements GameConstants {

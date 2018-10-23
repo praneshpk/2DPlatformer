@@ -123,8 +123,6 @@ public class Main extends PApplet implements GameConstants {
         event = client.send(ev);
         if(event.type == event_type.SEND)
             users = (ArrayList) event.data;
-        System.out.println("Received " + event + " from server");
-
     }
     public static Collidable collision(Rectangle pRect)
     {

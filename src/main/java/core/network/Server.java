@@ -25,6 +25,7 @@ public class Server extends Thread {
     private Player player;
     private ObjectInputStream input;
     private ObjectOutputStream output;
+    private Event event;
 
     public Server(Socket s)
     {
@@ -43,10 +44,10 @@ public class Server extends Thread {
 
     public void mainLoop() {
         System.out.println("New thread " +Thread.currentThread().getId());
-        Event event;
+
         while(true) {
             try {
-                event = (Event) input.readObject();
+                event = (Event) input.readUnshared();
                 // Receive event data
                 System.out.println("Received " + event + " from thread " + Thread.currentThread().getId());
             } catch (IOException e) {
@@ -92,7 +93,7 @@ public class Server extends Thread {
                 event = new Event(event.type, new ArrayList(users.values()));
             }
             try {
-                output.writeObject(event);
+                output.writeUnshared(event);
                 System.out.println("Sent " + event + " from thread " + Thread.currentThread().getId());
             } catch (IOException e) {
                 break;

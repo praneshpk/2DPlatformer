@@ -1,12 +1,10 @@
 package core.objects;
 
-import core.GameServer;
 import core.Main;
 import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
-import java.io.Serializable;
 import java.util.UUID;
 
 import static core.GameConstants.*;
@@ -17,7 +15,7 @@ import static core.GameConstants.*;
  * Adapted from:
  * https://www.openprocessing.org/sketch/92234
  */
-public class Player implements Serializable, Collidable {
+public class Player implements Collidable {
     public UUID id;
     public float dir, left, right, up;
 
@@ -76,9 +74,7 @@ public class Player implements Serializable, Collidable {
 
         PVector nextPos = new PVector(pos.x, pos.y);
         nextPos.add(velocity);
-
-        float offset = rect.width;
-
+        
         if (nextPos.x > 0 && nextPos.x < (WIDTH - PLAYER_SZ))
             pos.x = nextPos.x;
             pos.y = nextPos.y;

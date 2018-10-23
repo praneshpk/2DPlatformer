@@ -4,10 +4,8 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
-import java.io.Serializable;
 
-
-public class StaticPlatform implements Collidable, Serializable {
+public class StaticPlatform implements Collidable {
 
     protected Rectangle rect;
     protected PVector pos;
