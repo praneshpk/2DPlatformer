@@ -9,20 +9,13 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Scanner;
 
-public abstract class Client <E> {
+public abstract class Client {
     protected static String host;
     protected static int port;
     protected ObjectInputStream input;
     protected ObjectOutputStream output;
 
-
-    public E getData() {
-        return data;
-    }
-
-    protected E data;
-
-    public void setData(E data) { this.data = data; }
+    protected Player player;
 
     protected Scanner in;
 
@@ -35,6 +28,10 @@ public abstract class Client <E> {
     protected abstract void initialize(Socket s) throws Exception;
 
     protected abstract void IO();
+
+    public Player getPlayer() {
+        return player;
+    }
 
     public void start()
     {

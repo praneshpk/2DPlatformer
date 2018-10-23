@@ -7,6 +7,7 @@ import processing.core.PVector;
 
 import java.awt.*;
 import java.io.Serializable;
+import java.util.UUID;
 
 import static core.GameConstants.*;
 
@@ -17,10 +18,9 @@ import static core.GameConstants.*;
  * https://www.openprocessing.org/sketch/92234
  */
 public class Player implements Serializable, Collidable {
-    public int id;
+    public UUID id;
     public float dir, left, right, up;
 
-    private String username;
     private Rectangle rect;
     private PVector pos;
     private PVector velocity;
@@ -30,6 +30,7 @@ public class Player implements Serializable, Collidable {
 
     public Player()
     {
+        id = UUID.randomUUID();
         pos = new PVector(0, GROUND);
         rect = new Rectangle((int)pos.x, (int)pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
@@ -92,12 +93,13 @@ public class Player implements Serializable, Collidable {
 
     public void display(PApplet p)
     {
-        p.fill(p.color(id * 100 % 255));
+        p.fill(p.color(id.hashCode() * 100 % 255));
         p.noStroke();
         p.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);
     }
 
-    public String getUsername() { return username; }
-
-    public void setUsername(String username) { this.username = username; }
+    @Override
+    public String toString() {
+        return id.toString().substring(0,8);
+    }
 }

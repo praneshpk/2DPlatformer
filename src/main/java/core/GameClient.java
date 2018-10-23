@@ -12,7 +12,7 @@ import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 
-public class GameClient extends Client<Player> implements GameConstants {
+public class GameClient extends Client implements GameConstants {
 
     private PApplet p;
     private Socket s;
@@ -43,7 +43,7 @@ public class GameClient extends Client<Player> implements GameConstants {
         if(e.type == event_type.ERROR)
             throw new Exception(e.data.toString());
 
-        data = (Player) e.data;
+        player = (Player) e.data;
     }
     protected void IO() {
 

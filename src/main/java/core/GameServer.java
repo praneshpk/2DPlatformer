@@ -3,20 +3,19 @@ package core;
 import core.network.Server;
 import core.objects.Collidable;
 import core.objects.MovingPlatform;
-import core.objects.Player;
 import core.objects.StaticPlatform;
-import core.util.*;
-import core.util.Event;
 import processing.core.PVector;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Hashtable;
 import java.util.Random;
 
-public class GameServer extends Server<Player> implements GameConstants {
+public class GameServer extends Server implements GameConstants {
 
-    private static volatile Collidable platforms[] = new Collidable[PLATFORMS];
+    private ServerSocket server;
     public static volatile long start;
 
     /**
@@ -25,7 +24,8 @@ public class GameServer extends Server<Player> implements GameConstants {
      */
     public GameServer()
     {
-        super();
+        platforms = new Collidable[PLATFORMS];
+        users = new Hashtable<>();
         PVector pos;
         start = System.currentTimeMillis();
 
@@ -54,66 +54,33 @@ public class GameServer extends Server<Player> implements GameConstants {
         }
     }
 
-    protected void IO(Socket s)
+    public void run()
     {
-        System.out.println("New thread " +Thread.currentThread().getId());
-        Player p;
-        Event event;
-        while(true) {
-            synchronized(input) {
-                try {
-                    event = (Event) input.readObject();
-                    // Receive event data
-                    System.out.println("Received " + event + " from thread " + Thread.currentThread().getId());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    break;
-                }
-            }
-            // Platforms request
-            if (event.type == event_type.REQUEST) {
-                event = new Event(event.type, platforms);
-            }
+        try {
+            server = new ServerSocket(PORT);
+        } catch( Exception e ) {
+            System.err.println("Can't initialize server: " + e);
+            System.exit(1);
+        }
+        System.out.println("Server started on " + server.getLocalSocketAddress());
 
-            // Create new player
-            if (event.type == event_type.CREATE) {
-                // Check if server is full
-                if (users.size() == MAX_USERS)
-                    event = new Event(event_type.ERROR, null);
-                else {
-                    p = (Player) event.data;
-
-                    // Assign id based on location in list
-                    p.id = users.size();
-                    users.add(p);
-                    System.out.println(p.toString() + s.getLocalAddress() + " joined.");
-
-                    // Send back player object with id
-                    event = new Event(event.type, p);
-                }
+        try {
+            while(true) {
+                Socket s = server.accept();
+                NetworkThread t = new NetworkThread(s);
+                t.start();
             }
-            // Update player
-            if (event.type == event_type.SEND) {
-                p = (Player) event.data;
+        } catch ( Exception e ){
+            System.err.println("Error accepting client " + e);
+        } finally {
 
-                // Update player in user list
-                synchronized (users) {
-                    users.set(p.id, p);
-                    users.notifyAll();
-                }
+            try {
+                server.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            synchronized (output) {
-                try {
-                    output.writeObject(event);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    break;
-                }
-            }
-            //}
         }
     }
-
 
     public static void main(String[] args)
     {

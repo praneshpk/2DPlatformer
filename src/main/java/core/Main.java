@@ -9,6 +9,8 @@ import processing.core.PApplet;
 
 import java.awt.*;
 import java.net.Socket;
+import java.util.Hashtable;
+import java.util.UUID;
 
 
 /**
@@ -20,13 +22,15 @@ public class Main extends PApplet implements GameConstants {
     private static Collidable[] platforms;
     private Player player;
     private Event event;
+    private Hashtable<UUID, Player> users;
 
     private void renderObjects()
     {
 
         for(int i = platforms.length - 1; i >= 0; i--)
             platforms[i].display(this);
-        player.display(this);
+        for(Player p : users.values())
+            p.display(this);
     }
 
     public void settings()
@@ -49,14 +53,21 @@ public class Main extends PApplet implements GameConstants {
         System.out.println("Client started");
 
         // Get player from client
-        player = client.getData();
+        player = client.getPlayer();
         System.out.println("Player data read");
 
         // Get platforms from client
-        Event e = client.send(new Event(event_type.REQUEST, null));
-        if(e.type == event_type.ERROR)
+        event = client.send(new Event(event_type.REQUEST, "platforms".hashCode()));
+        if(event.type == event_type.ERROR)
             System.exit(1);
-        platforms = (Collidable[]) e.data;
+        platforms = (Collidable[]) event.data;
+
+        // Get user list from client
+        event = client.send(new Event(event_type.REQUEST, "users".hashCode()));
+        if(event.type == event_type.ERROR)
+            System.exit(1);
+        users = (Hashtable) event.data;
+
         System.out.println("setup done");
     }
 
@@ -106,7 +117,7 @@ public class Main extends PApplet implements GameConstants {
 
         event = client.send(new Event(event_type.SEND, player));
         if(event.type == event_type.SEND)
-            player = (Player) event.data;
+            users = (Hashtable) event.data;
         else
             System.out.println("Event error!");
     }
