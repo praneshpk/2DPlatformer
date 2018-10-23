@@ -1,8 +1,10 @@
 package core;
 
+import core.network.Client;
 import core.network.Server;
 import core.objects.Collidable;
 import core.objects.Player;
+import core.util.Constants;
 import core.util.Event;
 import core.util.event_type;
 import processing.core.PApplet;
@@ -10,15 +12,14 @@ import processing.core.PApplet;
 import java.awt.*;
 import java.net.Socket;
 import java.util.*;
-import java.util.List;
 
 
 /**
  * Class to connect to Server object
  */
-public class Main extends PApplet implements GameConstants {
+public class Main extends PApplet implements Constants {
 
-    private GameClient client;
+    private Client client;
     private static Collidable[] platforms;
     private Player player;
     private Event event;
@@ -28,9 +29,9 @@ public class Main extends PApplet implements GameConstants {
     {
 
         for(int i = platforms.length - 1; i >= 0; i--)
-            platforms[i].display(this);
+            platforms[i].display(this, client.getServerTime());
         for(Player p : users)
-            p.display(this);
+            p.display(this, 0);
     }
 
     public void settings()
@@ -48,27 +49,23 @@ public class Main extends PApplet implements GameConstants {
         fill(0,255,0);
 
         // Initialize client
-        client = new GameClient(Server.HOSTNAME, Server.PORT);
+        client = new Client(Server.HOSTNAME, Server.PORT);
         client.start();
-        System.out.println("Client started");
 
         // Get player from client
         player = client.getPlayer();
-        System.out.println("Player data read");
 
         // Get platforms from client
-        event = client.send(new Event(event_type.REQUEST, "platforms".hashCode()));
+        event = client.send(new Event(event_type.REQUEST, "platforms".hashCode()), false);
         if(event.type == event_type.ERROR)
             System.exit(1);
         platforms = (Collidable[]) event.data;
 
         // Get user list from client
-        event = client.send(new Event(event_type.REQUEST, "users".hashCode()));
+        event = client.send(new Event(event_type.REQUEST, "users".hashCode()), false);
         if(event.type == event_type.ERROR)
             System.exit(1);
         users = (ArrayList) event.data;
-
-        System.out.println("setup done");
     }
 
     /**
@@ -118,9 +115,8 @@ public class Main extends PApplet implements GameConstants {
     public void draw() {
         background(255);
         renderObjects();
-        player.update();
-        Event ev = new Event(event_type.SEND, player);
-        event = client.send(ev);
+        player.update(0);
+        event = client.send(new Event(event_type.SEND, player), true);
         if(event.type == event_type.SEND)
             users = (ArrayList) event.data;
     }

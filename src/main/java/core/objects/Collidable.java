@@ -8,8 +8,8 @@ import java.io.Serializable;
 
 public interface Collidable extends Serializable {
 
-    void display(PApplet p);
-    void update();
+    void display(PApplet p, long cycle);
+    void update(long cycle);
     Rectangle getRect();
     PVector getPos();
 }

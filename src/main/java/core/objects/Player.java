@@ -7,7 +7,7 @@ import processing.core.PVector;
 import java.awt.*;
 import java.util.UUID;
 
-import static core.GameConstants.*;
+import static core.util.Constants.*;
 
 /**
  * Player class responsible for movement
@@ -41,7 +41,7 @@ public class Player implements Collidable {
      * Adapted from
      * https://www.openprocessing.org/sketch/92234
      */
-    public void update()
+    public void update(long cycle)
     {
         Collidable collision = Main.collision(new Rectangle((int) pos.x,
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
@@ -87,7 +87,7 @@ public class Player implements Collidable {
 
     public PVector getPos() { return pos; }
 
-    public void display(PApplet p)
+    public void display(PApplet p, long cycle)
     {
         p.fill(p.color(id.hashCode() * 100 % 255));
         p.noStroke();
@@ -96,6 +96,6 @@ public class Player implements Collidable {
 
     @Override
     public String toString() {
-        return "id:" + id.toString().substring(0,8) + " pos:" + pos;
+        return "Player-" + id.toString().substring(0,8);
     }
 }

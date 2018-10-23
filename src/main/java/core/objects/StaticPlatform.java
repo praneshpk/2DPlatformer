@@ -22,15 +22,15 @@ public class StaticPlatform implements Collidable {
 
     public PVector getPos() { return pos; }
 
-    public void display(PApplet p)
+    public void display(PApplet p, long cycle)
     {
-        update();
+        update(cycle);
         p.fill(color.getRGB());
         p.noStroke();
         p.rect(pos.x, pos.y, rect.width, rect.height);
     }
 
-    public void update() {
+    public void update(long cycle) {
 
     }
 }

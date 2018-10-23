@@ -1,39 +1,36 @@
 package core;
 
-import core.network.Server;
 import core.objects.Collidable;
 import core.objects.MovingPlatform;
 import core.objects.StaticPlatform;
+import core.util.Constants;
 import processing.core.PVector;
 
 import java.awt.*;
 import java.util.Random;
 
-public class GameServer extends Server implements GameConstants {
-
-    public static volatile long start;
+public class Server extends core.network.Server implements Constants {
 
     /**
      * Sets up a list of randomly positioned and colored
      * shapes around the window
      */
-    public GameServer()
+    public Server()
     {
         super();
         platforms = new Collidable[PLATFORMS];
         PVector pos;
-        start = System.currentTimeMillis();
 
         platforms[0] = new StaticPlatform(new PVector(100, HEIGHT - 35),
                 200, 35, new Color(120));
         platforms[1] = new MovingPlatform(new PVector(WIDTH/2,HEIGHT/2),
-                new PVector(-5,0));
+                new PVector(-35,0));
         platforms[2] = new MovingPlatform(new PVector(MV_PLATORM[0] * 4,HEIGHT/2),
-                new PVector(5,0));
+                new PVector(35,0));
         platforms[3] = new MovingPlatform(new PVector(MV_PLATORM[0],HEIGHT -50 ),
-                new PVector(0,10));
+                new PVector(0,50));
         platforms[4] = new MovingPlatform(new PVector(WIDTH - 200,HEIGHT - 50),
-                new PVector(0,10));
+                new PVector(0,50));
 
         // Random static platforms
         for(int i = 5; i < PLATFORMS; i++) {
@@ -51,7 +48,7 @@ public class GameServer extends Server implements GameConstants {
 
     public static void main(String[] args)
     {
-        GameServer server = new GameServer();
+        Server server = new Server();
         server.listen();
     }
 

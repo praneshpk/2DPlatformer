@@ -6,9 +6,7 @@ import core.objects.Player;
 import core.util.Event;
 import core.util.event_type;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -20,6 +18,7 @@ public class Server extends Thread {
 
     protected static volatile Collidable platforms[];
     protected static volatile Hashtable<UUID, Player> users;
+    protected static volatile Clock time;
     private Socket s;
     private ServerSocket server;
     private Player player;
@@ -38,18 +37,18 @@ public class Server extends Thread {
         }
     }
 
-    public Server() {
+    public Server()
+    {
         users = new Hashtable<>();
+        time = new Clock();
     }
 
     public void mainLoop() {
-        System.out.println("New thread " +Thread.currentThread().getId());
-
         while(true) {
             try {
-                event = (Event) input.readUnshared();
+                event = (Event) input.readObject();
                 // Receive event data
-                System.out.println("Received " + event + " from thread " + Thread.currentThread().getId());
+                System.err.println("Received " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
             } catch (IOException e) {
                 break;
             } catch (ClassNotFoundException e) {
@@ -60,9 +59,10 @@ public class Server extends Thread {
             if (event.type == event_type.REQUEST) {
                 if(event.data.equals("platforms".hashCode()))
                     event = new Event(event.type, platforms);
-                if(event.data.equals("users".hashCode())) {
+                if(event.data.equals("users".hashCode()))
                     event = new Event(event.type, new ArrayList(users.values()));
-                }
+                if(event.data.equals("time".hashCode()))
+                    event = new Event(event.type, time.elapsed);
             }
 
             // Create new player
@@ -93,8 +93,10 @@ public class Server extends Thread {
                 event = new Event(event.type, new ArrayList(users.values()));
             }
             try {
-                output.writeUnshared(event);
-                System.out.println("Sent " + event + " from thread " + Thread.currentThread().getId());
+                output.reset();
+                output.writeObject(event);
+
+                System.err.println("Sent " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
             } catch (IOException e) {
                 break;
             }
@@ -113,6 +115,7 @@ public class Server extends Thread {
     }
 
     public void listen() {
+        time.start();
         try {
             server = new ServerSocket(PORT);
         } catch( Exception e ) {
