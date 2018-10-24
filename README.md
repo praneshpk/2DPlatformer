@@ -10,28 +10,30 @@ These instructions will get you a copy of the project up and running on your loc
 
 This project requires Maven and Java 8 is installed.
 
-### Easy Mode
+## Easy Mode
 
 Run the `LaunchGame.sh` shell script in the root of the project to compile and run the server and client processes. The script will run one client by default.*
 ```
 ./LaunchGame.sh [# of clients]
 ```
 
-## Compiling
+## Manual setup
+
+### Compiling
 
 Run the following command to compile the program
 ```
 mvn package
 ```
 
-## Running the game server process
+### Running the game server process
 
 Run the following command to start the game server
 ```
 java -cp target/multi-threaded-server-0.2.0.jar core.Server
 ```
 
-## Running the client process
+### Running the client process
 
 Run the following command to connect to the server and start the Processing sketch.*
 ```
