@@ -18,7 +18,7 @@ public class Server extends Thread {
 
     protected static volatile Collidable platforms[];
     protected static volatile Hashtable<UUID, Player> users;
-    protected static volatile Clock time;
+    protected static volatile long start;
     private Socket s;
     private ServerSocket server;
     private Player player;
@@ -40,7 +40,7 @@ public class Server extends Thread {
     public Server()
     {
         users = new Hashtable<>();
-        time = new Clock();
+        start = System.currentTimeMillis();
     }
 
     public void mainLoop() {
@@ -62,7 +62,7 @@ public class Server extends Thread {
                 if(event.data.equals("users".hashCode()))
                     event = new Event(event.type, new ArrayList(users.values()));
                 if(event.data.equals("time".hashCode()))
-                    event = new Event(event.type, time.elapsed);
+                    event = new Event(event.type, System.currentTimeMillis()-start);
             }
 
             // Create new player
@@ -115,7 +115,6 @@ public class Server extends Thread {
     }
 
     public void listen() {
-        time.start();
         try {
             server = new ServerSocket(PORT);
         } catch( Exception e ) {
