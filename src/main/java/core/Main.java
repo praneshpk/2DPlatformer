@@ -13,7 +13,6 @@ import java.awt.*;
 import java.net.Socket;
 import java.util.*;
 
-
 /**
  * Class to connect to Server object
  */
@@ -27,9 +26,8 @@ public class Main extends PApplet implements Constants {
 
     private void renderObjects()
     {
-
-        for(int i = platforms.length - 1; i >= 0; i--)
-            platforms[i].display(this, client.getServerTime());
+        for(Collidable p: platforms)
+            p.display(this, client.getServerTime());
         for(Player p : users)
             p.display(this, 0);
     }

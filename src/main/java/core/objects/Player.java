@@ -5,6 +5,7 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
+import java.util.Random;
 import java.util.UUID;
 
 import static core.util.Constants.*;
@@ -19,20 +20,23 @@ public class Player implements Collidable {
     public UUID id;
     public float dir, left, right, up;
 
-    private Rectangle rect;
-    private PVector pos;
-    private PVector velocity;
+    protected Rectangle rect;
+    protected PVector pos;
+    protected PVector velocity;
     private static float jumpSpeed = 6;
     private static float walkSpeed = 3;
-    private int ground = GROUND;
+    protected int ground = GROUND;
+    private int c;
 
     public Player()
     {
+        Random r = new Random();
         id = UUID.randomUUID();
-        pos = new PVector(0, GROUND);
+        pos = SPAWN[r.nextInt(SPAWN.length)].sub(0, PLAYER_SZ);
         rect = new Rectangle((int)pos.x, (int)pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
         velocity = new PVector(0, 0);
+        c = r.nextInt(7) * 30;
     }
 
     /**
@@ -46,17 +50,7 @@ public class Player implements Collidable {
         Collidable collision = Main.collision(new Rectangle((int) pos.x,
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
         if(collision != null) {
-            Rectangle col = collision.getRect();
-            if(pos.y + PLAYER_SZ < col.y + 10 ) {
-                ground = (int)col.y - PLAYER_SZ;
-                pos.y = col.y - PLAYER_SZ + 1;
-                if(collision instanceof MovingPlatform) {
-                    if(((MovingPlatform) collision).getDir().x != 0) {
-//                        System.out.println("moving horiz...");
-                    }
-
-                }
-            }
+            collision.handle(this);
         }
         else
             ground = GROUND;
@@ -83,13 +77,16 @@ public class Player implements Collidable {
 
     }
 
-    public Rectangle getRect() { return rect; }
+    @Override
+    public void handle(Player p) {
+        System.err.println("Collision with player " + this);
+    }
 
-    public PVector getPos() { return pos; }
+    public Rectangle getRect() { return rect; }
 
     public void display(PApplet p, long cycle)
     {
-        p.fill(p.color(id.hashCode() * 100 % 255));
+        p.fill(p.color(c));
         p.noStroke();
         p.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);
     }

@@ -14,11 +14,11 @@ import java.util.*;
 public class Server extends Thread {
     public static int PORT = 4096;
     public static String HOSTNAME = "127.0.0.1";
-    public static int MAX_USERS = 3;
+    public static int MAX_USERS = 6;
 
     protected static volatile Collidable platforms[];
     protected static volatile Hashtable<UUID, Player> users;
-    protected static volatile Clock time;
+    protected static volatile long start;
     private Socket s;
     private ServerSocket server;
     private Player player;
@@ -40,15 +40,15 @@ public class Server extends Thread {
     public Server()
     {
         users = new Hashtable<>();
-        time = new Clock();
+        start = System.currentTimeMillis();
     }
 
     public void mainLoop() {
         while(true) {
             try {
-                event = (Event) input.readObject();
                 // Receive event data
-                System.err.println("Received " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+                event = (Event) input.readObject();
+//                System.err.println("Received " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
             } catch (IOException e) {
                 break;
             } catch (ClassNotFoundException e) {
@@ -62,7 +62,7 @@ public class Server extends Thread {
                 if(event.data.equals("users".hashCode()))
                     event = new Event(event.type, new ArrayList(users.values()));
                 if(event.data.equals("time".hashCode()))
-                    event = new Event(event.type, time.elapsed);
+                    event = new Event(event.type, System.currentTimeMillis()-start);
             }
 
             // Create new player
@@ -96,7 +96,7 @@ public class Server extends Thread {
                 output.reset();
                 output.writeObject(event);
 
-                System.err.println("Sent " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+//                System.err.println("Sent " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
             } catch (IOException e) {
                 break;
             }
@@ -115,7 +115,6 @@ public class Server extends Thread {
     }
 
     public void listen() {
-        time.start();
         try {
             server = new ServerSocket(PORT);
         } catch( Exception e ) {
