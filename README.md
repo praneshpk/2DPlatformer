@@ -6,35 +6,39 @@ Beginning stages of creating a game engine using Processing and multi-threading
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-### Prerequisites
+## Prerequisites
 
-This project requires you having Maven and Java installed.
+This project requires Maven and Java 8 is installed.
 
-### Compiling
+### Easy Mode
 
-Run the following command in the root of the project, assuming Maven is installed.
+Run the `LaunchGame.sh` shell script in the root of the project to compile and run the server and client processes. The script will run one client by default.*
+```
+./LaunchGame.sh [# of clients]
+```
+
+## Compiling
+
+Run the following command to compile the program
 ```
 mvn package
 ```
 
-### Section 1: Processing
+## Running the game server process
 
-Run the following command to view the implementation of this section
+Run the following command to start the game server
 ```
-java -cp target/multi-threaded-server-0.1.0.jar Main
-```
-
-Use the left and right arrow keys to move around, spacebar to jump. Collision detection is printed in the console for now.
-
-### Section 2 & 3: Multi-threaded Networking
-
-The user will need to at least start up the Server class
-```
-java -cp target/multi-threaded-server-0.1.0.jar Server
-```
-and then up to three Client classes can be started simultaneously.
-```
-java -cp target/multi-threaded-server-0.1.0.jar Client
+java -cp target/multi-threaded-server-0.2.0.jar core.Server
 ```
 
-The server can be stopped by sending a SIGINT signal, while the client can enter ':q' to exit the server.
+## Running the client process
+
+Run the following command to connect to the server and start the Processing sketch.*
+```
+java -cp target/multi-threaded-server-0.2.0.jar core.Main
+```
+
+Use the left and right arrow keys to move around, spacebar to jump.
+
+
+**A maximum of 6 users can be connected to the server at once, as determined in the core.network.Server class*
