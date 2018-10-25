@@ -29,15 +29,19 @@ public class DeathZone implements Collidable, Constants {
     }
 
     @Override
-    public void handle(Player p) {
-        Random r = new Random();
-        p.pos = SPAWN[r.nextInt(SPAWN.length)].sub(0, PLAYER_SZ);
-        p.rect = new Rectangle((int)p.pos.x, (int)p.pos.y, PLAYER_SZ, PLAYER_SZ);
-        p.dir = 1;
-        p.left = 0;
-        p.right = 0;
-        p.up = 0;
-        p.velocity = new PVector(0, 0);
+    public void handle(Collidable p) {
+        if(p instanceof Player) {
+            Player tmp =(Player) p;
+            Random r = new Random();
+            tmp.pos = SPAWN[r.nextInt(SPAWN.length)].sub(0, PLAYER_SZ);
+            tmp.rect = new Rectangle((int)tmp.pos.x, (int)tmp.pos.y, PLAYER_SZ, PLAYER_SZ);
+            tmp.dir = 1;
+            tmp.left = 0;
+            tmp.right = 0;
+            tmp.up = 0;
+            tmp.velocity = new PVector(0, 0);
+            p = tmp;
+        }
     }
 
     @Override

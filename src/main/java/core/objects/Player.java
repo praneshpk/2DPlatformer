@@ -78,8 +78,8 @@ public class Player implements Collidable {
     }
 
     @Override
-    public void handle(Player p) {
-        System.err.println("Collision with player " + this);
+    public void handle(Collidable p) {
+        System.err.println("Collision with " + this);
     }
 
     public Rectangle getRect() { return rect; }
