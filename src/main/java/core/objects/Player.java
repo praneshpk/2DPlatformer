@@ -51,6 +51,8 @@ public class Player implements Collidable {
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
         if(collision != null) {
             collision.handle(this);
+            if(collision instanceof DeathZone)
+                return;
         }
         else
             ground = GROUND;

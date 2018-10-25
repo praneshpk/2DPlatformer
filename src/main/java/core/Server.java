@@ -25,7 +25,7 @@ public class Server extends core.network.Server implements Constants {
         // Death zones
         for(int i = 0; i < DEATH_ZONES.length; i++ )
             platforms[i] = new DeathZone(DEATH_ZONES[i],
-                    100, 100);
+                    PLAYER_SZ, PLAYER_SZ);
 
         // Spawn-friendly platforms
         for(int i = DEATH_ZONES.length; i < COLLIDABLES - PLATFORMS; i++ )
