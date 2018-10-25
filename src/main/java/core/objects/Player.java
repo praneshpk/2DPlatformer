@@ -51,6 +51,8 @@ public class Player implements Collidable {
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
         if(collision != null) {
             collision.handle(this);
+            if(collision instanceof DeathZone)
+                return;
         }
         else
             ground = GROUND;
@@ -78,8 +80,8 @@ public class Player implements Collidable {
     }
 
     @Override
-    public void handle(Player p) {
-        System.err.println("Collision with player " + this);
+    public void handle(Collidable p) {
+        System.err.println("Collision with " + this);
     }
 
     public Rectangle getRect() { return rect; }

@@ -35,10 +35,14 @@ public class StaticPlatform implements Collidable {
     }
 
     @Override
-    public void handle(Player p) {
-        if (p.pos.y + PLAYER_SZ < rect.y + 10) {
-            p.ground = rect.y - PLAYER_SZ;
-            p.pos.y = rect.y - PLAYER_SZ + 1;
+    public void handle(Collidable p) {
+        if(p instanceof Player) {
+            Player tmp = (Player) p;
+            if (tmp.pos.y + PLAYER_SZ < rect.y + 10) {
+                tmp.ground = rect.y - PLAYER_SZ;
+                tmp.pos.y = rect.y - PLAYER_SZ + 1;
+            }
+            p = tmp;
         }
     }
 }
