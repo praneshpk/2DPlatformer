@@ -30,14 +30,14 @@ mvn package
 
 Run the following command to start the game server
 ```
-java -cp target/multi-threaded-server-0.2.0.jar core.Server
+java -cp target/2DPlatformer-0.3.0.jar core.Server
 ```
 
 ### Running the client process
 
 Run the following command to connect to the server and start the Processing sketch.*
 ```
-java -cp target/multi-threaded-server-0.2.0.jar core.Main
+java -cp target/2DPlatformer-0.3.0.jar core.Main
 ```
 
 Use the left and right arrow keys to move around, spacebar to jump.
