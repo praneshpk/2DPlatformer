@@ -21,8 +21,6 @@ public class Client implements Constants {
     private ObjectInputStream input;
     private ObjectOutputStream output;
 
-
-
     private Player player;
 
     public Client(String host, int port)
