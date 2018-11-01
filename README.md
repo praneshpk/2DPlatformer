@@ -1,6 +1,6 @@
-# Multi-threaded Server
+# 2D Platformer
 
-Beginning stages of creating a game engine using Processing and multi-threading
+Beginning stages of creating a multiplayer game engine using Processing 3 and multi-threading
 
 ## Getting Started
 
