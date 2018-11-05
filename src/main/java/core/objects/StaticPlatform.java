@@ -7,7 +7,8 @@ import java.awt.*;
 
 import static core.util.Constants.PLAYER_SZ;
 
-public class StaticPlatform implements Collidable {
+public class StaticPlatform implements Collidable
+{
 
     protected Rectangle rect;
     protected PVector pos;
@@ -20,7 +21,10 @@ public class StaticPlatform implements Collidable {
         rect = new Rectangle((int) pos.x, (int) pos.y, (int) w, (int) h);
     }
 
-    public Rectangle getRect() { return rect; }
+    public Rectangle getRect()
+    {
+        return rect;
+    }
 
     public void display(PApplet p, long cycle)
     {
@@ -30,13 +34,15 @@ public class StaticPlatform implements Collidable {
         p.rect(pos.x, pos.y, rect.width, rect.height);
     }
 
-    public void update(long cycle) {
+    public void update(long cycle)
+    {
 
     }
 
     @Override
-    public void handle(Collidable p) {
-        if(p instanceof Player) {
+    public void handle(Collidable p)
+    {
+        if (p instanceof Player) {
             Player tmp = (Player) p;
             if (tmp.pos.y + PLAYER_SZ < rect.y + 10) {
                 tmp.ground = rect.y - PLAYER_SZ;

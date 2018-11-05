@@ -12,11 +12,12 @@ import static core.util.Constants.*;
 
 /**
  * Player class responsible for movement
- *
+ * <p>
  * Adapted from:
  * https://www.openprocessing.org/sketch/92234
  */
-public class Player implements Collidable {
+public class Player implements Collidable
+{
     public UUID id;
     public float dir, left, right, up;
 
@@ -33,7 +34,7 @@ public class Player implements Collidable {
         Random r = new Random();
         id = UUID.randomUUID();
         pos = SPAWN[r.nextInt(SPAWN.length)].sub(0, PLAYER_SZ);
-        rect = new Rectangle((int)pos.x, (int)pos.y, PLAYER_SZ, PLAYER_SZ);
+        rect = new Rectangle((int) pos.x, (int) pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
         velocity = new PVector(0, 0);
         c = r.nextInt(7) * 30;
@@ -41,7 +42,7 @@ public class Player implements Collidable {
 
     /**
      * Updates the player's current state
-     *
+     * <p>
      * Adapted from
      * https://www.openprocessing.org/sketch/92234
      */
@@ -49,42 +50,44 @@ public class Player implements Collidable {
     {
         Collidable collision = Main.collision(new Rectangle((int) pos.x,
                 (int) pos.y, PLAYER_SZ, PLAYER_SZ));
-        if(collision != null) {
+        if (collision != null) {
             collision.handle(this);
-            if(collision instanceof DeathZone)
+            if (collision instanceof DeathZone)
                 return;
-        }
-        else
+        } else
             ground = GROUND;
 
-        if(pos.y < ground) {
+        if (pos.y < ground) {
             velocity.y += GRAVITY;
-        }
-        else
+        } else
             velocity.y = 0;
 
-        if(pos.y >= ground && up != 0)
+        if (pos.y >= ground && up != 0)
             velocity.y = -jumpSpeed;
 
         velocity.x = walkSpeed * (left + right);
 
         PVector nextPos = new PVector(pos.x, pos.y);
         nextPos.add(velocity);
-        
+
         if (nextPos.x > 0 && nextPos.x < (WIDTH - PLAYER_SZ))
             pos.x = nextPos.x;
-            pos.y = nextPos.y;
+        pos.y = nextPos.y;
         rect.x = (int) pos.x;
         rect.y = (int) pos.y;
 
     }
 
     @Override
-    public void handle(Collidable p) {
+    public void handle(Collidable p)
+    {
         System.err.println("Collision with " + this);
     }
 
-    public Rectangle getRect() { return rect; }
+    public Rectangle getRect()
+    {
+        return rect;
+    }
 
     public void display(PApplet p, long cycle)
     {
@@ -94,7 +97,8 @@ public class Player implements Collidable {
     }
 
     @Override
-    public String toString() {
-        return "Player-" + id.toString().substring(0,8);
+    public String toString()
+    {
+        return "Player-" + id.toString().substring(0, 8);
     }
 }

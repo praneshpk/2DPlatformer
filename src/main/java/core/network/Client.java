@@ -11,7 +11,8 @@ import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 
-public class Client implements Constants {
+public class Client implements Constants
+{
 
     private PApplet p;
     private Socket s;
@@ -39,7 +40,7 @@ public class Client implements Constants {
         Event e = send(new Event(event_type.CREATE, new Player()), false);
 
         // Throw exception if server is full
-        if(e.type == event_type.ERROR)
+        if (e.type == event_type.ERROR)
             throw new IllegalStateException(e.data.toString());
 
         player = (Player) e.data;
@@ -50,7 +51,7 @@ public class Client implements Constants {
         try {
             s = new Socket(host, port);
             initialize(s);
-        } catch(ConnectException e) {
+        } catch (ConnectException e) {
             System.out.println("Error: Server has not been started!");
             System.exit(1);
         } catch (IllegalStateException e) {
@@ -61,18 +62,22 @@ public class Client implements Constants {
             System.exit(1);
         }
     }
-    public long getServerTime() {
+
+    public long getServerTime()
+    {
         Event e = send(new Event(event_type.REQUEST, "time".hashCode()), false);
         return (long) e.data;
     }
 
-    public Player getPlayer() {
+    public Player getPlayer()
+    {
         return player;
     }
 
-    public synchronized Event send(Event event, boolean uncached) {
+    public synchronized Event send(Event event, boolean uncached)
+    {
         try {
-            if(uncached)
+            if (uncached)
                 output.reset();
             output.writeObject(event);
             return (Event) input.readObject();

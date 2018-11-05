@@ -16,7 +16,8 @@ import java.util.*;
 /**
  * Class to connect to Server object
  */
-public class Main extends PApplet implements Constants {
+public class Main extends PApplet implements Constants
+{
 
     private Client client;
     private static Collidable[] platforms;
@@ -26,9 +27,9 @@ public class Main extends PApplet implements Constants {
 
     private void renderObjects()
     {
-        for(Collidable p: platforms)
+        for (Collidable p : platforms)
             p.display(this, client.getServerTime());
-        for(Player p : users)
+        for (Player p : users)
             p.display(this, 0);
     }
 
@@ -36,6 +37,7 @@ public class Main extends PApplet implements Constants {
     {
         size(WIDTH, HEIGHT);
     }
+
     public void setup()
     {
         // Socket for client to connect to
@@ -44,7 +46,7 @@ public class Main extends PApplet implements Constants {
         // Processing window settings
         smooth();
         noStroke();
-        fill(0,255,0);
+        fill(0, 255, 0);
 
         // Initialize client
         client = new Client(Server.HOSTNAME, Server.PORT);
@@ -55,13 +57,13 @@ public class Main extends PApplet implements Constants {
 
         // Get platforms from client
         event = client.send(new Event(event_type.REQUEST, "platforms".hashCode()), false);
-        if(event.type == event_type.ERROR)
+        if (event.type == event_type.ERROR)
             System.exit(1);
         platforms = (Collidable[]) event.data;
 
         // Get user list from client
         event = client.send(new Event(event_type.REQUEST, "users".hashCode()), false);
-        if(event.type == event_type.ERROR)
+        if (event.type == event_type.ERROR)
             System.exit(1);
         users = (ArrayList) event.data;
     }
@@ -77,59 +79,63 @@ public class Main extends PApplet implements Constants {
 
     /**
      * Updates player state based on keystrokes
-     *
+     * <p>
      * Adapted from
      * https://www.openprocessing.org/sketch/92234
      */
     public void keyPressed()
     {
-        if(keyCode == LEFT) {
+        if (keyCode == LEFT) {
             player.left = -1;
             player.dir = 1;
         }
-        if(keyCode == RIGHT) {
+        if (keyCode == RIGHT) {
             player.right = 1;
             player.dir = -1;
         }
-        if(key == ' ')
+        if (key == ' ')
             player.up = -1;
     }
 
     /**
      * Updates player state based on keystrokes
-     *
+     * <p>
      * Adapted from
      * https://www.openprocessing.org/sketch/92234
      */
     public void keyReleased()
     {
-        if(keyCode == LEFT)
+        if (keyCode == LEFT)
             player.left = 0;
-        if(keyCode == RIGHT)
+        if (keyCode == RIGHT)
             player.right = 0;
-        if(key == ' ')
+        if (key == ' ')
             player.up = 0;
     }
-    public void draw() {
+
+    public void draw()
+    {
         background(255);
         renderObjects();
         player.update(0);
         event = client.send(new Event(event_type.SEND, player), true);
-        if(event.type == event_type.SEND)
+        if (event.type == event_type.SEND)
             users = (ArrayList) event.data;
     }
+
     public static Collidable collision(Rectangle pRect)
     {
-        for(Collidable p: platforms) {
+        for (Collidable p : platforms) {
             if (p != null && pRect.intersects(p.getRect()))
                 return p;
         }
         return null;
 
     }
+
     public static Collidable collision(Rectangle pRect, Collidable[] platforms)
     {
-        for(Collidable p: platforms) {
+        for (Collidable p : platforms) {
             if (p != null && pRect.intersects(p.getRect()))
                 return p;
         }

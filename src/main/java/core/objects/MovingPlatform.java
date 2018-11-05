@@ -5,7 +5,8 @@ import processing.core.PVector;
 
 import java.awt.*;
 
-public class MovingPlatform extends StaticPlatform implements Collidable, Constants {
+public class MovingPlatform extends StaticPlatform implements Collidable, Constants
+{
 
     private PVector lo, hi, dir;
     private float time;
@@ -20,7 +21,7 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Consta
      */
     public MovingPlatform(PVector pos, PVector dir)
     {
-        super(pos,MV_PLATORM[0],MV_PLATORM[1],new Color((int)(Math.random() * 0x1000000)));
+        super(pos, MV_PLATORM[0], MV_PLATORM[1], new Color((int) (Math.random() * 0x1000000)));
         this.dir = dir;
         this.time = 3;
         this.lo = new PVector(pos.x, pos.y);
@@ -30,14 +31,14 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Consta
     @Override
     public void update(long cycle)
     {
-        float elapsed = cycle%(time*2*1000)/1000f;
-        if(elapsed < time) {
-            pos.x = lo.x - (dir.x * elapsed );
-            pos.y = lo.y - (dir.y * elapsed );
+        float elapsed = cycle % (time * 2 * 1000) / 1000f;
+        if (elapsed < time) {
+            pos.x = lo.x - (dir.x * elapsed);
+            pos.y = lo.y - (dir.y * elapsed);
         }
-        if(elapsed >= time && elapsed <= time * 2) {
-            pos.x = hi.x + (dir.x * (elapsed%time) );
-            pos.y = hi.y + (dir.y * (elapsed%time) );
+        if (elapsed >= time && elapsed <= time * 2) {
+            pos.x = hi.x + (dir.x * (elapsed % time));
+            pos.y = hi.y + (dir.y * (elapsed % time));
         }
 
         // Update hitbox
@@ -45,5 +46,9 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Consta
         rect.y = (int) pos.y;
 
     }
-    public PVector getDir() { return dir; }
+
+    public PVector getDir()
+    {
+        return dir;
+    }
 }

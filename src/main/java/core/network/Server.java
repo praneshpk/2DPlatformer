@@ -11,7 +11,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
-public class Server extends Thread {
+public class Server extends Thread
+{
     public static int PORT = 4096;
     public static String HOSTNAME = "127.0.0.1";
     public static int MAX_USERS = 6;
@@ -43,8 +44,9 @@ public class Server extends Thread {
         start = System.currentTimeMillis();
     }
 
-    public void mainLoop() {
-        while(true) {
+    public void mainLoop()
+    {
+        while (true) {
             try {
                 // Receive event data
                 event = (Event) input.readObject();
@@ -57,12 +59,12 @@ public class Server extends Thread {
             }
             // Requests
             if (event.type == event_type.REQUEST) {
-                if(event.data.equals("platforms".hashCode()))
+                if (event.data.equals("platforms".hashCode()))
                     event = new Event(event.type, platforms);
-                if(event.data.equals("users".hashCode()))
+                if (event.data.equals("users".hashCode()))
                     event = new Event(event.type, new ArrayList(users.values()));
-                if(event.data.equals("time".hashCode()))
-                    event = new Event(event.type, System.currentTimeMillis()-start);
+                if (event.data.equals("time".hashCode()))
+                    event = new Event(event.type, System.currentTimeMillis() - start);
             }
 
             // Create new player
@@ -103,7 +105,8 @@ public class Server extends Thread {
         }
     }
 
-    public void run() {
+    public void run()
+    {
         mainLoop();
         try {
             System.out.println(player.toString() + s.getLocalAddress() + " left.");
@@ -114,22 +117,23 @@ public class Server extends Thread {
         }
     }
 
-    public void listen() {
+    public void listen()
+    {
         try {
             server = new ServerSocket(PORT);
-        } catch( Exception e ) {
+        } catch (Exception e) {
             System.err.println("Can't initialize server: " + e);
             System.exit(1);
         }
         System.out.println("Server started on " + server.getLocalSocketAddress());
 
         try {
-            while(true) {
+            while (true) {
                 Socket s = server.accept();
                 Server t = new Server(s);
                 t.start();
             }
-        } catch ( Exception e ){
+        } catch (Exception e) {
             System.err.println("Error accepting client " + e);
         } finally {
 
