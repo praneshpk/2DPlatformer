@@ -7,9 +7,9 @@ public class GlobalTimeTest
 {
 
     @Test
-    public void testTime() throws InterruptedException
+    public void getTime() throws InterruptedException
     {
-        GlobalTime t = new GlobalTime();
+        GlobalTime t = new GlobalTime(1);
         t.start();
         Thread.sleep(1000);
         Assert.assertEquals(1000, t.getTime(), 10);

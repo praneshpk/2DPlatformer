@@ -11,8 +11,15 @@ public abstract class Time
 
     public abstract void start();
 
-    public abstract void pause();
+    public void pause()
+    {
+        pause = System.currentTimeMillis();
+    }
 
-    public abstract void unPause();
+    public void unPause()
+    {
+        pausedTime = (System.currentTimeMillis() - pause) / tic;
+        pause = 0;
+    }
 
 }
