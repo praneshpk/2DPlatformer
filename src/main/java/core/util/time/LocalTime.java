@@ -1,8 +1,14 @@
-package core.util;
+package core.util.time;
 
 public class LocalTime extends Time
 {
     GlobalTime anchor;
+
+    public LocalTime(int tic)
+    {
+        anchor = new GlobalTime(tic);
+        this.tic = tic;
+    }
 
     public LocalTime(GlobalTime global, int tic)
     {

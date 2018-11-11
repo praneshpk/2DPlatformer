@@ -1,9 +1,11 @@
 package core.util;
 
-import org.junit.Assert;
-import org.junit.Test;
-
+import core.util.time.GlobalTime;
+import core.util.time.LocalTime;
 import static org.junit.Assert.*;
+
+
+import org.junit.Test;
 
 public class LocalTimeTest
 {
@@ -16,17 +18,17 @@ public class LocalTimeTest
         gt.start();
         lt.start();
         Thread.sleep(1000);
-        Assert.assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
+        assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
         gt.pause();
         Thread.sleep(1000);
         gt.unPause();
-        Assert.assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
+        assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
         lt.pause();
         Thread.sleep(2000);
-        Assert.assertEquals(1, lt.getTime());
+        assertEquals(1, lt.getTime());
         lt.unPause();
-        Assert.assertEquals(3, lt.getTime());
-        Assert.assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
+        assertEquals(3, lt.getTime());
+        assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
         System.err.println("global: " + gt.getTime() + " local: " + lt.getTime());
     }
 }

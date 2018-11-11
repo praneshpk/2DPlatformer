@@ -1,6 +1,7 @@
 package core.util;
 
-import org.junit.Assert;
+import core.util.time.GlobalTime;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class GlobalTimeTest
@@ -12,12 +13,12 @@ public class GlobalTimeTest
         GlobalTime t = new GlobalTime(1);
         t.start();
         Thread.sleep(1000);
-        Assert.assertEquals(1000, t.getTime(), 10);
+        assertEquals(1000, t.getTime(), 10);
         t.pause();
-        Assert.assertEquals(1000, t.getTime(), 10);
+        assertEquals(1000, t.getTime(), 10);
         Thread.sleep(1000);
         t.unPause();
         Thread.sleep(1000);
-        Assert.assertEquals(2000, t.getTime(), 10);
+        assertEquals(2000, t.getTime(), 10);
     }
 }

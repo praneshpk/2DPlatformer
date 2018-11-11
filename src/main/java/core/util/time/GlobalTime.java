@@ -1,4 +1,4 @@
-package core.util;
+package core.util.time;
 
 public class GlobalTime extends Time
 {

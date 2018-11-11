@@ -5,6 +5,7 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
+import java.io.Serializable;
 import java.util.Random;
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ import static core.util.Constants.*;
  * Adapted from:
  * https://www.openprocessing.org/sketch/92234
  */
-public class Player implements Collidable
+public class Player implements Collidable, Serializable
 {
     public UUID id;
     public float dir, left, right, up;

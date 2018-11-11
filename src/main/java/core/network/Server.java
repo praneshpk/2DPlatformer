@@ -3,8 +3,10 @@ package core.network;
 
 import core.objects.Collidable;
 import core.objects.Player;
-import core.util.Event;
-import core.util.event_type;
+import core.util.events.Event;
+import core.util.events.EventHandler;
+import core.util.events.EventManager;
+import core.util.time.GlobalTime;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -16,16 +18,22 @@ public class Server extends Thread
     public static int PORT = 4096;
     public static String HOSTNAME = "127.0.0.1";
     public static int MAX_USERS = 6;
+    public static final int TIC = 1;
 
-    protected static volatile Collidable platforms[];
+    protected static volatile Collidable[] platforms;
     protected static volatile Hashtable<UUID, Player> users;
-    protected static volatile long start;
-    private Socket s;
+    protected static volatile EventManager em;
+    protected static volatile GlobalTime time;
+    protected static volatile UUID id;
+    protected Player player;
+    protected Socket s;
+
     private ServerSocket server;
-    private Player player;
     private ObjectInputStream input;
     private ObjectOutputStream output;
-    private Event event;
+    private Event.type event_type;
+    private Event.obj event_obj;
+    private EventHandler[] handlers;
 
     public Server(Socket s)
     {
@@ -36,70 +44,96 @@ public class Server extends Thread
         } catch (IOException e) {
             e.printStackTrace();
         }
+        handlers = new EventHandler[event_type.values().length];
+        for(int i = 0; i < handlers.length; i++ ) {
+            handlers[i] = new EventHandler(this, event_type.values()[i]);
+            em.register(handlers[i]);
+        }
     }
 
     public Server()
     {
         users = new Hashtable<>();
-        start = System.currentTimeMillis();
+        time = new GlobalTime(TIC);
+        id = UUID.randomUUID();
+        em = new EventManager();
+    }
+
+    public void handleSpawn() throws IOException
+    {
+        System.out.println("Handling new player...");
+        HashMap<Event.obj, Object> args = new HashMap<>();
+        args.put(event_obj.TIME, time);
+        Event send;
+
+        // Check if server is full
+        if (users.size() == MAX_USERS) {
+            args.put(event_obj.MSG, "Server is full");
+            send = new Event(event_type.ERROR, args);
+        }
+        else {
+            player = new Player();
+            synchronized (users) {
+                users.put(player.id, player);
+            }
+            System.out.println(player.toString() + s.getLocalAddress() + " joined.");
+
+            args.put(event_obj.PLAYER, player);
+            args.put(event_obj.USERS, users);
+            args.put(event_obj.PLATFORMS, platforms);
+            send = new Event(event_type.SPAWN, args);
+        }
+        output.reset();
+        output.writeObject(send);
+        System.err.println("Sent " + send + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+    }
+
+    public void handleDeath()
+    {
+
+    }
+
+    public void handleInput(Object data) throws IOException
+    {
+        HashMap<Event.obj, Object> args = new HashMap<>();
+        args.put(event_obj.TIME, time);
+        player = (Player) data;
+
+        // Update player in user list
+        synchronized (users) {
+            users.replace(player.id, player);
+        }
+        args.put(event_obj.PLAYER, player);
+        Event send = new Event(event_type.INPUT, args);
+
+        output.reset();
+        output.writeObject(send);
+        System.err.println("Sent " + send + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+    }
+
+    public void handleCollision(Object data)
+    {
+
     }
 
     public void mainLoop()
     {
+        Event receive;
         while (true) {
             try {
                 // Receive event data
-                event = (Event) input.readObject();
-//                System.err.println("Received " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+                receive = (Event) input.readObject();
+                System.err.println("Received " + receive + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
             } catch (IOException e) {
+                e.printStackTrace();
                 break;
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
                 break;
             }
-            // Requests
-            if (event.type == event_type.REQUEST) {
-                if (event.data.equals("platforms".hashCode()))
-                    event = new Event(event.type, platforms);
-                if (event.data.equals("users".hashCode()))
-                    event = new Event(event.type, new ArrayList(users.values()));
-                if (event.data.equals("time".hashCode()))
-                    event = new Event(event.type, System.currentTimeMillis() - start);
-            }
-
-            // Create new player
-            if (event.type == event_type.CREATE) {
-                // Check if server is full
-                if (users.size() == MAX_USERS)
-                    event = new Event(event_type.ERROR, null);
-                else {
-                    player = (Player) event.data;
-                    synchronized (users) {
-                        users.put(player.id, player);
-                    }
-                    System.out.println(player.toString() + s.getLocalAddress() + " joined.");
-
-                    // Send back player object with id
-                    event = new Event(event.type, player);
-                }
-            }
-            // Update player
-            if (event.type == event_type.SEND) {
-                player = (Player) event.data;
-
-                // Update player in user list
-                synchronized (users) {
-                    users.replace(player.id, player);
-                }
-
-                event = new Event(event.type, new ArrayList(users.values()));
-            }
             try {
-                output.reset();
-                output.writeObject(event);
-
-//                System.err.println("Sent " + event + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
-            } catch (IOException e) {
+                em.handle(receive);
+            } catch (Exception e) {
                 break;
             }
         }
@@ -110,6 +144,8 @@ public class Server extends Thread
         mainLoop();
         try {
             System.out.println(player.toString() + s.getLocalAddress() + " left.");
+            for(EventHandler h: handlers)
+                em.unRegister(h);
             users.remove(player.id);
             s.close();
         } catch (IOException e) {
@@ -119,6 +155,7 @@ public class Server extends Thread
 
     public void listen()
     {
+        time.start();
         try {
             server = new ServerSocket(PORT);
         } catch (Exception e) {

@@ -1,6 +1,8 @@
-package core.util;
+package core.util.time;
 
-public abstract class Time
+import java.io.Serializable;
+
+public abstract class Time implements Serializable
 {
     protected long start;
     protected long pausedTime;

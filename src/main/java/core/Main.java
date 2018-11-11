@@ -5,11 +5,16 @@ import core.network.Server;
 import core.objects.Collidable;
 import core.objects.Player;
 import core.util.Constants;
-import core.util.Event;
-import core.util.event_type;
+import core.util.events.Event;
+import core.util.events.EventHandler;
+import core.util.events.EventManager;
+import core.util.time.LocalTime;
 import processing.core.PApplet;
 
 import java.awt.*;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.*;
 
@@ -18,21 +23,22 @@ import java.util.*;
  */
 public class Main extends PApplet implements Constants
 {
-
-    private Client client;
     private static Collidable[] platforms;
     private Player player;
+    private Hashtable<UUID, Player> users;
     private Event event;
-    private ArrayList<Player> users;
+    protected Event.type event_type;
+    protected Event.obj event_obj;
+    private Client client;
+    private long time;
 
     private void renderObjects()
     {
         for (Collidable p : platforms)
-            p.display(this, client.getServerTime());
-        for (Player p : users)
+            p.display(this, time);
+        for (Player p : users.values())
             p.display(this, 0);
     }
-
     public void settings()
     {
         size(WIDTH, HEIGHT);
@@ -40,32 +46,26 @@ public class Main extends PApplet implements Constants
 
     public void setup()
     {
-        // Socket for client to connect to
+        // Initialize variables
         Socket s = null;
+        client = new Client(Server.HOSTNAME, Server.PORT);
+        event = client.start();
+
+        if(event.type() == event_type.ERROR) {
+            System.err.println(event.data().get(event_obj.MSG));
+            System.exit(1);
+        }
+
+        player = (Player) event.data().get(event_obj.PLAYER);
+        users = (Hashtable) event.data().get(event_obj.USERS);
+        platforms = (Collidable[]) event.data().get(event_obj.PLATFORMS);
 
         // Processing window settings
         smooth();
         noStroke();
         fill(0, 255, 0);
 
-        // Initialize client
-        client = new Client(Server.HOSTNAME, Server.PORT);
-        client.start();
 
-        // Get player from client
-        player = client.getPlayer();
-
-        // Get platforms from client
-        event = client.send(new Event(event_type.REQUEST, "platforms".hashCode()), false);
-        if (event.type == event_type.ERROR)
-            System.exit(1);
-        platforms = (Collidable[]) event.data;
-
-        // Get user list from client
-        event = client.send(new Event(event_type.REQUEST, "users".hashCode()), false);
-        if (event.type == event_type.ERROR)
-            System.exit(1);
-        users = (ArrayList) event.data;
     }
 
     /**
@@ -95,6 +95,11 @@ public class Main extends PApplet implements Constants
         }
         if (key == ' ')
             player.up = -1;
+
+        client.send(Event.type.INPUT, player, true);
+        event = client.receive();
+        System.err.println("Received " + event + " from server ");
+        handleEvent(event);
     }
 
     /**
@@ -111,6 +116,11 @@ public class Main extends PApplet implements Constants
             player.right = 0;
         if (key == ' ')
             player.up = 0;
+
+        client.send(Event.type.INPUT, player, true);
+        event = client.receive();
+        System.err.println("Received " + event + " from server ");
+        handleEvent(event);
     }
 
     public void draw()
@@ -118,9 +128,26 @@ public class Main extends PApplet implements Constants
         background(255);
         renderObjects();
         player.update(0);
-        event = client.send(new Event(event_type.SEND, player), true);
-        if (event.type == event_type.SEND)
-            users = (ArrayList) event.data;
+
+
+
+    }
+
+    public void handleEvent(Event e)
+    {
+        switch(e.type()) {
+            case COLLISION:
+                break;
+            case SPAWN:
+                users = (Hashtable) e.data().get(event_obj.USERS);
+                break;
+            case DEATH:
+            case INPUT:
+                Player p = (Player) e.data().get(event_obj.PLAYER);
+                users.replace(p.id, p);
+                break;
+        }
+        //time = (Time) e.data().get(event_obj.TIME);
     }
 
     public static Collidable collision(Rectangle pRect)
