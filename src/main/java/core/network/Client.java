@@ -1,7 +1,6 @@
 package core.network;
 
 import core.util.Constants;
-import core.objects.Player;
 import core.util.events.Event;
 
 import core.util.events.EventHandler;
@@ -10,45 +9,55 @@ import core.util.time.GlobalTime;
 import core.util.time.LocalTime;
 import processing.core.PApplet;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 import java.util.UUID;
 
 public class Client implements Constants
 {
     private PApplet p;
     private Socket s;
+    private UUID id;
 
     private static String host;
     private static int port;
     private ObjectInputStream input;
     private ObjectOutputStream output;
     private LocalTime time;
-    private EventManager em;
-    protected Event.type event_type;
-    protected Event.obj event_obj;
-    private EventHandler[] handlers;
+    private PriorityQueue<Event> events;
+    private EventListener listener;
+    private Event.Type event_type;
+    private Event.Obj event_obj;
 
 
     public Client(String host, int port)
     {
         this.host = host;
         this.port = port;
-        em = new EventManager();
-        handlers = new EventHandler[event_type.values().length];
-        for(int i = 0; i < handlers.length; i++ ) {
-            handlers[i] = new EventHandler(this, event_type.values()[i]);
-            em.register(handlers[i]);
+        id = UUID.randomUUID();
+        events = new PriorityQueue<>();
+    }
+
+    public long getTime() { return time.getTime(); }
+
+    public UUID id() { return id; }
+
+    public Event receive()
+    {
+        Event e = null;
+        synchronized (events) {
+            e = events.poll();
         }
+        return e;
     }
 
     public Event start()
     {
         Event e = null;
+        Thread t = null;
         try {
             s = new Socket(host, port);
 
@@ -56,34 +65,58 @@ public class Client implements Constants
             output = new ObjectOutputStream(s.getOutputStream());
             input = new ObjectInputStream(s.getInputStream());
 
-            // Create a new player object
-            send(event_type.SPAWN, null, false);
+            // Send client id
+            output.writeObject(id);
 
-            // Wait until an appropriate response is received
-            while(true) {
-                e = (Event) input.readObject();
-                if(e.type() == event_type.ERROR) {
-                    System.err.println(e.data().get(event_obj.MSG));
-                    System.exit(1);
-                }
-                if(e.type() == event_type.SPAWN)
-                    break;
-            }
-
-            time = new LocalTime((GlobalTime) e.data().get(event_obj.TIME), 1);
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(1);
         }
+        try {
+            // Create new thread for receiving events
+            t = new Thread(new EventListener());
+            t.start();
 
+            // Create a new player object
+            send(event_type.SPAWN, null, false);
+
+            // Wait until an appropriate response is received
+            while (true) {
+                e = receive();
+                if (e != null) {
+                    if (e.type() == event_type.ERROR) {
+                        System.err.println(e.data().get(event_obj.MSG));
+                        System.exit(1);
+                    }
+                    if (e.type() == event_type.SPAWN)
+                        break;
+                }
+            }
+
+            time = new LocalTime((GlobalTime) e.data().get(event_obj.TIME), 1);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            try {
+                t.join();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+            System.exit(1);
+        }
         return e;
     }
 
-    public synchronized void send(Event.type type, Object data, boolean uncached)
+    public synchronized void send(Event.Type type, Object data, boolean uncached)
     {
-        HashMap<Event.obj, Object> args = new HashMap<>();
-        args.put(Event.obj.DATA, data);
-        args.put(Event.obj.TIME, time);
+        HashMap<Event.Obj, Object> args = new HashMap<>();
+        if(data != null) {
+            for(Event.Obj o : event_obj.values())
+                if(o.type().equals(data.getClass()))
+                    args.put(o, data);
+        }
+        args.put(Event.Obj.ID, id);
+        args.put(Event.Obj.TIME, time);
         Event event = new Event(type, args);
         try {
             if (uncached)
@@ -96,15 +129,25 @@ public class Client implements Constants
         }
     }
 
-    public synchronized Event receive()
+    private class EventListener implements Runnable
     {
-        Event e = null;
-        try {
-            e = (Event) input.readObject();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
+        @Override
+        public void run()
+        {
+            while(true) {
+                try {
+                    Object o = input.readObject();
+                    if(o instanceof Event) {
+                        synchronized (events) {
+                            events.add((Event)o);
+                        }
+                        System.err.println("Received " + o );
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    break;
+                }
+            }
         }
-        return e;
     }
 }

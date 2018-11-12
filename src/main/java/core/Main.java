@@ -6,15 +6,9 @@ import core.objects.Collidable;
 import core.objects.Player;
 import core.util.Constants;
 import core.util.events.Event;
-import core.util.events.EventHandler;
-import core.util.events.EventManager;
-import core.util.time.LocalTime;
 import processing.core.PApplet;
 
 import java.awt.*;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.util.*;
 
@@ -23,21 +17,32 @@ import java.util.*;
  */
 public class Main extends PApplet implements Constants
 {
-    private static Collidable[] platforms;
-    private Player player;
+    private static LinkedList<Collidable> platforms;
+    //private Player player;
     private Hashtable<UUID, Player> users;
     private Event event;
-    protected Event.type event_type;
-    protected Event.obj event_obj;
+    protected Event.Type event_type;
+    protected Event.Obj event_obj;
     private Client client;
-    private long time;
+    private int collision = 0;
 
     private void renderObjects()
     {
         for (Collidable p : platforms)
-            p.display(this, time);
-        for (Player p : users.values())
+            p.display(this, client.getTime());
+
+        LinkedList objects;
+        for(Player p: users.values()) {
             p.display(this, 0);
+        }
+    }
+
+    private void updateObjects()
+    {
+        for(Player p: users.values()) {
+            p.update(collision);
+            users.replace(p.id, p);
+        }
     }
     public void settings()
     {
@@ -56,16 +61,14 @@ public class Main extends PApplet implements Constants
             System.exit(1);
         }
 
-        player = (Player) event.data().get(event_obj.PLAYER);
+        //player = (Player) event.data().get(event_obj.PLAYER);
         users = (Hashtable) event.data().get(event_obj.USERS);
-        platforms = (Collidable[]) event.data().get(event_obj.PLATFORMS);
+        platforms = (LinkedList) event.data().get(event_obj.COLLIDABLES);
 
         // Processing window settings
         smooth();
         noStroke();
         fill(0, 255, 0);
-
-
     }
 
     /**
@@ -85,21 +88,23 @@ public class Main extends PApplet implements Constants
      */
     public void keyPressed()
     {
-        if (keyCode == LEFT) {
-            player.left = -1;
-            player.dir = 1;
+        Player player = users.get(client.id());
+        switch(keyCode) {
+            case LEFT:
+                player.left = -1;
+                player.dir = 1;
+                client.send(event_type.INPUT, player, true);
+                break;
+            case RIGHT:
+                player.right = 1;
+                player.dir = -1;
+                client.send(event_type.INPUT, player, true);
+                break;
+            case 32:
+                player.up = -1;
+                client.send(event_type.INPUT, player, true);
+                break;
         }
-        if (keyCode == RIGHT) {
-            player.right = 1;
-            player.dir = -1;
-        }
-        if (key == ' ')
-            player.up = -1;
-
-        client.send(Event.type.INPUT, player, true);
-        event = client.receive();
-        System.err.println("Received " + event + " from server ");
-        handleEvent(event);
     }
 
     /**
@@ -110,57 +115,63 @@ public class Main extends PApplet implements Constants
      */
     public void keyReleased()
     {
-        if (keyCode == LEFT)
-            player.left = 0;
-        if (keyCode == RIGHT)
-            player.right = 0;
-        if (key == ' ')
-            player.up = 0;
-
-        client.send(Event.type.INPUT, player, true);
-        event = client.receive();
-        System.err.println("Received " + event + " from server ");
-        handleEvent(event);
+        Player player = users.get(client.id());
+        switch(keyCode) {
+            case LEFT:
+                player.left = 0;
+                client.send(event_type.INPUT, player, true);
+                break;
+            case RIGHT:
+                player.right = 0;
+                client.send(event_type.INPUT, player, true);
+                break;
+            case 32:
+                player.up = 0;
+                client.send(event_type.INPUT, player, true);
+                break;
+        }
     }
 
     public void draw()
     {
         background(255);
         renderObjects();
-        player.update(0);
-
-
-
+        handleEvent(client.receive());
+        updateObjects();
     }
 
     public void handleEvent(Event e)
     {
-        switch(e.type()) {
-            case COLLISION:
-                break;
-            case SPAWN:
-                users = (Hashtable) e.data().get(event_obj.USERS);
-                break;
-            case DEATH:
-            case INPUT:
-                Player p = (Player) e.data().get(event_obj.PLAYER);
-                users.replace(p.id, p);
-                break;
+        if(e != null) {
+            collision = 0;
+            switch (e.type()) {
+                case SPAWN:
+                    users = (Hashtable) e.data().get(event_obj.USERS);
+                    break;
+                case COLLISION:
+                    collision = 1;
+                case DEATH:
+                case INPUT:
+                    Player p = (Player) e.data().get(event_obj.PLAYER);
+                    users.replace(p.id, p);
+                    break;
+            }
         }
         //time = (Time) e.data().get(event_obj.TIME);
     }
 
-    public static Collidable collision(Rectangle pRect)
+    public LinkedList<Collidable> collision(Rectangle pRect)
     {
+        LinkedList<Collidable> ret = new LinkedList<>();
         for (Collidable p : platforms) {
             if (p != null && pRect.intersects(p.getRect()))
-                return p;
+                ret.add(p);
         }
-        return null;
+        return ret;
 
     }
 
-    public static Collidable collision(Rectangle pRect, Collidable[] platforms)
+    public static Collidable collision(Rectangle pRect, LinkedList<Collidable> platforms)
     {
         for (Collidable p : platforms) {
             if (p != null && pRect.intersects(p.getRect()))

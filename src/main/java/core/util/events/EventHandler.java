@@ -1,13 +1,15 @@
 package core.util.events;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.UUID;
 
 public class EventHandler
 {
-    private Event.type type;
+    private Event.Type type;
     private Object inst;
 
-    public EventHandler(Object inst, Event.type type)
+    public EventHandler(Object inst, Event.Type type)
     {
         this.inst  = inst;
         this.type = type;
@@ -15,13 +17,12 @@ public class EventHandler
 
     public void handle(HashMap args)
     {
-        Object obj = args.get(Event.obj.DATA);
         try {
             switch (type) {
                 case COLLISION:
                     inst.getClass()
-                            .getDeclaredMethod("handleCollision", Object.class)
-                            .invoke(inst, obj);
+                            .getDeclaredMethod("handleCollision", LinkedList.class)
+                            .invoke(inst, args.get(Event.Obj.COLLIDABLES));
                     break;
                 case DEATH:
                     inst.getClass()
@@ -30,13 +31,13 @@ public class EventHandler
                     break;
                 case SPAWN:
                     inst.getClass()
-                            .getDeclaredMethod("handleSpawn")
-                            .invoke(inst);
+                            .getDeclaredMethod("handleSpawn", UUID.class)
+                            .invoke(inst, (UUID) args.get(Event.Obj.ID));
                     break;
                 case INPUT:
                     inst.getClass()
                             .getDeclaredMethod("handleInput", Object.class)
-                            .invoke(inst, obj);
+                            .invoke(inst, args.get(Event.Obj.PLAYER));
                     break;
             }
         } catch (Exception e) {
@@ -45,5 +46,5 @@ public class EventHandler
         }
     }
 
-    public Event.type getType() { return type; }
+    public Event.Type getType() { return type; }
 }

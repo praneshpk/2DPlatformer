@@ -30,10 +30,10 @@ public class Player implements Collidable, Serializable
     protected int ground = GROUND;
     private int c;
 
-    public Player()
+    public Player(UUID id)
     {
         Random r = new Random();
-        id = UUID.randomUUID();
+        this.id = id;
         pos = SPAWN[r.nextInt(SPAWN.length)].sub(0, PLAYER_SZ);
         rect = new Rectangle((int) pos.x, (int) pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
@@ -49,13 +49,18 @@ public class Player implements Collidable, Serializable
      */
     public void update(long cycle)
     {
-        Collidable collision = Main.collision(new Rectangle((int) pos.x,
-                (int) pos.y, PLAYER_SZ, PLAYER_SZ));
-        if (collision != null) {
-            collision.handle(this);
-            if (collision instanceof DeathZone)
-                return;
-        } else
+//        Collidable collision = Main.collision(getRect());
+//        //System.err.println(collision);
+//        //collision = null;
+//        if (collision != null) {
+//            collision.handle(this);
+//            if (collision instanceof DeathZone)
+//                return;
+//        } else {
+//            ground = GROUND;
+//        }
+
+        if(cycle == 0)
             ground = GROUND;
 
         if (pos.y < ground) {

@@ -21,7 +21,6 @@ public interface Constants
             new PVector(WIDTH - PLAYER_SZ * 3, GROUND)
     };
     int PLATFORMS = 20;
-    int COLLIDABLES = PLATFORMS + DEATH_ZONES.length + SPAWN.length;
     int[] MV_PLATORM = {50, 5};
 
 }

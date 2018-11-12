@@ -6,7 +6,7 @@ import java.util.LinkedList;
 public class EventManager
 {
 
-    private static HashMap<Event.type, LinkedList<EventHandler>> listeners;
+    private static HashMap<Event.Type, LinkedList<EventHandler>> listeners;
 
     public EventManager()
     {

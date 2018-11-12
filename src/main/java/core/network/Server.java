@@ -2,12 +2,14 @@ package core.network;
 
 
 import core.objects.Collidable;
+import core.objects.DeathZone;
 import core.objects.Player;
 import core.util.events.Event;
 import core.util.events.EventHandler;
 import core.util.events.EventManager;
 import core.util.time.GlobalTime;
 
+import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -20,34 +22,38 @@ public class Server extends Thread
     public static int MAX_USERS = 6;
     public static final int TIC = 1;
 
-    protected static volatile Collidable[] platforms;
+    protected static volatile LinkedList<Collidable> platforms;
     protected static volatile Hashtable<UUID, Player> users;
     protected static volatile EventManager em;
     protected static volatile GlobalTime time;
     protected static volatile UUID id;
-    protected Player player;
     protected Socket s;
 
     private ServerSocket server;
     private ObjectInputStream input;
     private ObjectOutputStream output;
-    private Event.type event_type;
-    private Event.obj event_obj;
-    private EventHandler[] handlers;
+    private Event.Type event_type;
+    private Event.Obj event_obj;
+    private UUID cid;
+    private LinkedList<EventHandler> handlers;
 
     public Server(Socket s)
     {
         this.s = s;
+
         try {
             output = new ObjectOutputStream(s.getOutputStream());
             input = new ObjectInputStream(s.getInputStream());
-        } catch (IOException e) {
+
+            // Set client id
+            cid = (UUID) input.readObject();
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        handlers = new EventHandler[event_type.values().length];
-        for(int i = 0; i < handlers.length; i++ ) {
-            handlers[i] = new EventHandler(this, event_type.values()[i]);
-            em.register(handlers[i]);
+        handlers = new LinkedList<>();
+        for(Event.Type t : event_type.values()) {
+            handlers.add(new EventHandler(this, t));
+            em.register(handlers.getLast());
         }
     }
 
@@ -59,10 +65,17 @@ public class Server extends Thread
         em = new EventManager();
     }
 
-    public void handleSpawn() throws IOException
+    private synchronized void send(Object data, boolean uncached) throws IOException
     {
-        System.out.println("Handling new player...");
-        HashMap<Event.obj, Object> args = new HashMap<>();
+        if(uncached)
+            output.reset();
+        output.writeObject(data);
+        System.err.println("Sent " + data + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+    }
+
+    public void handleSpawn(UUID id) throws IOException
+    {
+        HashMap<Event.Obj, Object> args = new HashMap<>();
         args.put(event_obj.TIME, time);
         Event send;
 
@@ -72,20 +85,23 @@ public class Server extends Thread
             send = new Event(event_type.ERROR, args);
         }
         else {
-            player = new Player();
-            synchronized (users) {
-                users.put(player.id, player);
+            // Block gets executed once
+            if(!users.containsKey(id)) {
+                synchronized (users) {
+                    users.put(id, new Player(id));
+                }
+                System.out.println(users.get(id).toString() + s.getLocalAddress() + " joined.");
             }
-            System.out.println(player.toString() + s.getLocalAddress() + " joined.");
 
-            args.put(event_obj.PLAYER, player);
+            if(cid.equals(id)) {
+                args.put(event_obj.PLAYER, users.get(id));
+                args.put(event_obj.COLLIDABLES, platforms);
+            }
+
             args.put(event_obj.USERS, users);
-            args.put(event_obj.PLATFORMS, platforms);
             send = new Event(event_type.SPAWN, args);
         }
-        output.reset();
-        output.writeObject(send);
-        System.err.println("Sent " + send + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+        send(send, true);
     }
 
     public void handleDeath()
@@ -95,24 +111,54 @@ public class Server extends Thread
 
     public void handleInput(Object data) throws IOException
     {
-        HashMap<Event.obj, Object> args = new HashMap<>();
+        HashMap<Event.Obj, Object> args = new HashMap<>();
         args.put(event_obj.TIME, time);
-        player = (Player) data;
+        event_type = event_type.INPUT;
+
+        Player p = (Player) data;
+
+        LinkedList<Collidable> objects = collision(p.getRect());
+        if(!objects.isEmpty()) {
+            //Collidable c = objects.pop();
+            for(Collidable c : objects) {
+                c.handle(p);
+                if(!(c instanceof DeathZone))
+                    p.update(1);
+            }
+            event_type = event_type.COLLISION;
+        }
 
         // Update player in user list
         synchronized (users) {
-            users.replace(player.id, player);
+            users.replace(cid, p);
         }
-        args.put(event_obj.PLAYER, player);
-        Event send = new Event(event_type.INPUT, args);
-
-        output.reset();
-        output.writeObject(send);
-        System.err.println("Sent " + send + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+        args.put(event_obj.PLAYER, p);
+        send(new Event(event_type, args), true);
     }
 
-    public void handleCollision(Object data)
+    public LinkedList<Collidable> collision(Rectangle pRect)
     {
+        LinkedList<Collidable> ret = new LinkedList<>();
+        for (Collidable p : platforms) {
+            if (p != null && pRect.intersects(p.getRect()))
+                ret.add(p);
+        }
+        return ret;
+
+    }
+
+    public void handleCollision(LinkedList<Collidable> data) throws IOException
+    {
+        HashMap<Event.Obj, Object> args = new HashMap<>();
+        args.put(event_obj.TIME, time);
+
+        Player p = (Player) data.pollLast();
+        for(Collidable c: data) {
+            c.handle(p);
+        }
+        p.update(1);
+        args.put(event_obj.PLAYER, p);
+        send(new Event(event_type.COLLISION, args), true);
 
     }
 
@@ -124,16 +170,15 @@ public class Server extends Thread
                 // Receive event data
                 receive = (Event) input.readObject();
                 System.err.println("Received " + receive + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
-            } catch (IOException e) {
-                e.printStackTrace();
-                break;
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                //e.printStackTrace();
                 break;
             }
+
             try {
                 em.handle(receive);
             } catch (Exception e) {
+                e.printStackTrace();
                 break;
             }
         }
@@ -143,10 +188,10 @@ public class Server extends Thread
     {
         mainLoop();
         try {
-            System.out.println(player.toString() + s.getLocalAddress() + " left.");
+            System.out.println(users.get(cid).toString() + " left.");
             for(EventHandler h: handlers)
                 em.unRegister(h);
-            users.remove(player.id);
+            users.remove(cid);
             s.close();
         } catch (IOException e) {
             e.printStackTrace();
