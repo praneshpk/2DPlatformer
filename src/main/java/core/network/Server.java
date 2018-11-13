@@ -4,6 +4,7 @@ package core.network;
 import core.objects.Collidable;
 import core.objects.DeathZone;
 import core.objects.Player;
+import core.objects.StaticPlatform;
 import core.util.events.Event;
 import core.util.events.EventHandler;
 import core.util.events.EventManager;
@@ -60,6 +61,7 @@ public class Server extends Thread
     public Server()
     {
         users = new Hashtable<>();
+        platforms = new LinkedList<>();
         time = new GlobalTime(TIC);
         id = UUID.randomUUID();
         em = new EventManager();
@@ -75,6 +77,7 @@ public class Server extends Thread
 
     public void handleJoin(HashMap args) throws IOException
     {
+
         System.out.println(args + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
         // Check if server is full
         if (users.size() == MAX_USERS) {
@@ -86,12 +89,14 @@ public class Server extends Thread
         else {
             UUID e_id = (UUID) args.get(event_obj.ID);
             // Block gets executed once
+
             if(!users.containsKey(e_id)) {
                 synchronized (users) {
                     users.put(e_id, new Player(e_id));
                 }
                 System.out.println(users.get(e_id).toString() + s.getLocalAddress() + " joined.");
             }
+
             args = new HashMap();
             args.put(event_obj.TIME, time);
             if(cid.equals(e_id)) {
@@ -101,6 +106,8 @@ public class Server extends Thread
             else
                 args.put(event_obj.PLAYER, users.get(e_id));
 
+            for (int i = 0; i < 4; i++)
+                System.out.println(platforms.get(i+1).getPos());
             send(new Event(event_type.SPAWN, args), true);
         }
     }
@@ -118,19 +125,10 @@ public class Server extends Thread
             send(new Event(event_type.LEAVE, args), true);
     }
 
-    public void handleDeath()
+
+    public void handleUpdate(Event.Type type, HashMap args) throws IOException
     {
-
-    }
-
-    public void handleInput(HashMap args) throws IOException
-    {
-        // Defaults to sending back an input type
-        event_type = event_type.INPUT;
-
-        // Check if there are collisions
         Player p = (Player) args.get(event_obj.PLAYER);
-//        LinkedList<Collidable> objects = collision(p.getRect());
 
         // Update player in user list, if necessary
         if(!users.get(p.id).equals(p)) {
@@ -142,41 +140,10 @@ public class Server extends Thread
 
         args = new HashMap();
 
-//        // Send back as collision event if found
-//        if (!objects.isEmpty()) {
-//            if(objects.peek() instanceof DeathZone)
-//                event_type = event_type.DEATH;
-//            else
-//                event_type = event_type.COLLISION;
-//            args.put(event_obj.ID, p.id);
-//            args.put(event_obj.COLLIDABLES, objects);
-//
-//        }
-
         // Add standard args
         args.put(event_obj.TIME, time);
         args.put(event_obj.USERS, users);
-        send(new Event(event_type, args), true);
-    }
-
-    public LinkedList<Collidable> collision(Rectangle pRect)
-    {
-        LinkedList<Collidable> ret = new LinkedList<>();
-        for (Collidable p : platforms) {
-            if(p != null) {
-                p.update(time.getTime());
-                if(pRect.intersects(p.getRect())) {
-                    if(p instanceof DeathZone) {
-                        ret.clear();
-                        ret.add(p);
-                        return ret;
-                    }
-                    ret.add(p);
-                }
-            }
-        }
-        return ret;
-
+        send(new Event(type, args), true);
     }
 
     public void run()

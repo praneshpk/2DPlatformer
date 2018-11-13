@@ -10,14 +10,18 @@ import java.util.Random;
 public class DeathZone implements Collidable, Constants
 {
 
-    protected Rectangle rect;
-    protected PVector pos;
+    final Type type = Type.DEATH_ZONE;
+    protected final Rectangle rect;
+    protected final PVector pos;
 
     public DeathZone(PVector pos, float w, float h)
     {
         this.pos = pos;
         rect = new Rectangle((int) pos.x, (int) pos.y, (int) w, (int) h);
     }
+
+    @Override
+    public Type type() { return type; }
 
     @Override
     public void display(PApplet p, long cycle)
@@ -52,5 +56,17 @@ public class DeathZone implements Collidable, Constants
     public Rectangle getRect()
     {
         return rect;
+    }
+
+    @Override
+    public PVector getPos()
+    {
+        return pos;
+    }
+
+    @Override
+    public int compareTo(Collidable o)
+    {
+        return type.compareTo(o.type());
     }
 }

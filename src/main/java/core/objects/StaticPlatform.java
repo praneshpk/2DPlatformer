@@ -9,10 +9,10 @@ import static core.util.Constants.PLAYER_SZ;
 
 public class StaticPlatform implements Collidable
 {
-
-    protected Rectangle rect;
-    protected PVector pos;
-    protected Color color;
+    Type type = Type.STATIC_PLATFORM;
+    protected final Rectangle rect;
+    protected final PVector pos;
+    protected final Color color;
 
     public StaticPlatform(PVector pos, float w, float h, Color c)
     {
@@ -26,12 +26,21 @@ public class StaticPlatform implements Collidable
         return rect;
     }
 
+    @Override
+    public PVector getPos()
+    {
+        return pos;
+    }
+
+    @Override
+    public Type type() { return type; }
+
     public void display(PApplet p, long cycle)
     {
         update(cycle);
         p.fill(color.getRGB());
         p.noStroke();
-        p.rect(pos.x, pos.y, rect.width, rect.height);
+        p.rect(pos.x, pos.y, this.rect.width, this.rect.height);
     }
 
     public void update(long cycle)
@@ -51,4 +60,7 @@ public class StaticPlatform implements Collidable
             p = tmp;
         }
     }
+
+    @Override
+    public int compareTo(Collidable o) { return type.compareTo(o.type()); }
 }

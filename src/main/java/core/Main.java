@@ -19,7 +19,6 @@ import java.util.*;
 public class Main extends PApplet implements Constants
 {
     private static LinkedList<Collidable> platforms;
-    //private Player player;
     private Hashtable<UUID, Player> users;
     private Event event;
     protected Event.Type event_type;
@@ -60,9 +59,8 @@ public class Main extends PApplet implements Constants
             System.exit(1);
         }
 
-        //player = (Player) event.data().get(event_obj.PLAYER);
-        users = (Hashtable) event.data().get(event_obj.USERS);
         platforms = (LinkedList) event.data().get(event_obj.COLLIDABLES);
+        users = (Hashtable) event.data().get(event_obj.USERS);
 
         // Processing window settings
         smooth();
@@ -153,19 +151,10 @@ public class Main extends PApplet implements Constants
             switch (e.type()) {
                 case COLLISION:
                 case DEATH:
-                    users = (Hashtable) e.data().get(event_obj.USERS);
-                    LinkedList<Collidable> objects = (LinkedList) e.data().get(event_obj.COLLIDABLES);
-                    p = users.get(e.data().get(event_obj.ID));
-                    for(Collidable obj: objects) {
-                        obj.handle(p);
-                        if(!(obj instanceof DeathZone))
-                            collision = 1;
-                    }
                     break;
                 case INPUT:
                     users = (Hashtable) e.data().get(event_obj.USERS);
                     break;
-
                 case SPAWN:
                     p = (Player) e.data().get(event_obj.PLAYER);
                     users.put(p.id, p);
@@ -180,37 +169,31 @@ public class Main extends PApplet implements Constants
 
     public void collision(Player player)
     {
-        LinkedList<Collidable> objects = new LinkedList<>();
+        PriorityQueue<Collidable> objects = new PriorityQueue<>();
         for (Collidable p : platforms) {
             if(p != null) {
                 if(player.getRect().intersects(p.getRect())) {
                     if(p instanceof DeathZone) {
                         p.handle(player);
+                        client.send(event_type.DEATH, false, player, users);
                         return;
                     }
                     objects.add(p);
                 }
             }
         }
+
         if(!objects.isEmpty()) {
-            //for(Collidable c : objects) {
             Collidable c = objects.poll();
             c.handle(player);
             player.update(1);
-            //}
+            if(!c.equals(player.collide)) {
+                player.collide = c;
+                client.send(event_type.COLLISION, true, player, users);
+            }
         } else {
             player.update(0);
         }
-
-    }
-
-    public static Collidable collision(Rectangle pRect, LinkedList<Collidable> platforms)
-    {
-        for (Collidable p : platforms) {
-            if (p != null && pRect.intersects(p.getRect()))
-                return p;
-        }
-        return null;
 
     }
 }

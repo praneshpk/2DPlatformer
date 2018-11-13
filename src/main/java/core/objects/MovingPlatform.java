@@ -7,7 +7,7 @@ import java.awt.*;
 
 public class MovingPlatform extends StaticPlatform implements Collidable, Constants
 {
-
+    final Type type = Type.MOVING_PLATFORM;
     private PVector lo, hi, dir;
     private float time;
 
@@ -27,6 +27,9 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Consta
         this.lo = new PVector(pos.x, pos.y);
         this.hi = new PVector(pos.x - dir.x * time, pos.y - dir.y * time);
     }
+
+    @Override
+    public Type type() { return type; }
 
     @Override
     public void update(long cycle)
@@ -51,4 +54,7 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Consta
     {
         return dir;
     }
+
+    @Override
+    public int compareTo(Collidable o) { return type.compareTo(o.type()); }
 }

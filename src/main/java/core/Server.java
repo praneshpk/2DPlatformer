@@ -18,7 +18,6 @@ public class Server extends core.network.Server implements Constants
     public Server()
     {
         super();
-        platforms = new LinkedList<>();
         PVector pos;
 
         // Death zones
@@ -39,7 +38,7 @@ public class Server extends core.network.Server implements Constants
                 pos = new PVector(random.nextInt(WIDTH), random.nextInt(HEIGHT));
                 c = new StaticPlatform(pos, r, r,
                         new Color((int) (Math.random() * 0x1000000)));
-            } while (Main.collision(c.getRect(), platforms) != null);
+            } while (collision(c.getRect(), platforms));
             platforms.add(c);
         }
 
@@ -51,8 +50,14 @@ public class Server extends core.network.Server implements Constants
                 new PVector(0, 50)));
         platforms.add(new MovingPlatform(new PVector(WIDTH - 200, HEIGHT - 50),
                 new PVector(0, 50)));
+    }
 
-
+    public boolean collision(Rectangle pRect, LinkedList<Collidable> platforms)
+    {
+        for (Collidable p : platforms)
+            if(p != null && pRect.intersects(p.getRect()))
+                return true;
+        return false;
     }
 
 

@@ -1,5 +1,6 @@
 package core.network;
 
+import core.objects.Collidable;
 import core.util.Constants;
 import core.util.events.Event;
 
@@ -13,6 +14,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.UUID;
 
@@ -92,7 +94,6 @@ public class Client implements Constants
                         break;
                 }
             }
-
             time = new LocalTime((GlobalTime) e.data().get(event_obj.TIME), 1);
 
         } catch (Exception ex) {
@@ -126,6 +127,8 @@ public class Client implements Constants
         args.put(Event.Obj.ID, id);
         args.put(Event.Obj.TIME, time);
         try {
+            Event send = new Event(type, args);
+            System.err.println("Sent " + send);
             if (uncached)
                 output.reset();
             output.writeObject(new Event(type, args));

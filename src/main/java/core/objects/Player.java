@@ -19,22 +19,26 @@ import static core.util.Constants.*;
  */
 public class Player implements Collidable, Serializable
 {
-    public UUID id;
+    final Type type = Type.PLAYER;
+    public final UUID id;
     public float dir, left, right, up;
+    public Collidable collide;
 
     protected Rectangle rect;
     protected PVector pos;
     protected PVector velocity;
-    private static float jumpSpeed = 6;
-    private static float walkSpeed = 3;
+    private static final float jumpSpeed = 6;
+    private static final float walkSpeed = 3;
     protected int ground = GROUND;
-    private int c;
+    private final int c;
 
     public Player(UUID id)
     {
         Random r = new Random();
+        collide = null;
         this.id = id;
-        pos = SPAWN[r.nextInt(SPAWN.length)].sub(0, PLAYER_SZ);
+        int i = r.nextInt(SPAWN.length);
+        pos = new PVector(SPAWN[i].x, SPAWN[i].y - PLAYER_SZ);
         rect = new Rectangle((int) pos.x, (int) pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
         velocity = new PVector(0, 0);
@@ -95,6 +99,15 @@ public class Player implements Collidable, Serializable
         return rect;
     }
 
+    @Override
+    public PVector getPos()
+    {
+        return pos;
+    }
+
+    @Override
+    public Type type() { return type; }
+
     public void display(PApplet p, long cycle)
     {
         p.fill(p.color(c));
@@ -107,4 +120,7 @@ public class Player implements Collidable, Serializable
     {
         return "Player-" + id.toString().substring(0, 8);
     }
+
+    @Override
+    public int compareTo(Collidable o) { return type.compareTo(o.type()); }
 }

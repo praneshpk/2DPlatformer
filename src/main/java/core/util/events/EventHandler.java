@@ -1,8 +1,6 @@
 package core.util.events;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.UUID;
 
 public class EventHandler
 {
@@ -19,30 +17,18 @@ public class EventHandler
     {
         try {
             switch (type) {
-                case COLLISION:
-                    inst.getClass()
-                            .getDeclaredMethod("handleCollision", HashMap.class)
-                            .invoke(inst, args);
-                    break;
-                case DEATH:
-                    inst.getClass()
-                            .getDeclaredMethod("handleDeath", HashMap.class)
-                            .invoke(inst, args);
-                    break;
                 case JOIN:
                     inst.getClass()
                             .getDeclaredMethod("handleJoin", HashMap.class)
                             .invoke(inst, args);
                     break;
                 case SPAWN:
-                    inst.getClass()
-                            .getDeclaredMethod("handleSpawn", HashMap.class)
-                            .invoke(inst, args);
-                    break;
+                case COLLISION:
+                case DEATH:
                 case INPUT:
                     inst.getClass()
-                            .getDeclaredMethod("handleInput", HashMap.class)
-                            .invoke(inst, args);
+                            .getDeclaredMethod("handleUpdate", type.getClass(), HashMap.class)
+                            .invoke(inst, type, args);
                     break;
                 case LEAVE:
                     inst.getClass()
