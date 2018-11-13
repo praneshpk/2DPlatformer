@@ -3,6 +3,7 @@ package core;
 import core.network.Client;
 import core.network.Server;
 import core.objects.Collidable;
+import core.objects.DeathZone;
 import core.objects.Player;
 import core.util.Constants;
 import core.util.events.Event;
@@ -30,8 +31,6 @@ public class Main extends PApplet implements Constants
     {
         for (Collidable p : platforms)
             p.display(this, client.getTime());
-
-        LinkedList objects;
         for(Player p: users.values()) {
             p.display(this, 0);
         }
@@ -40,7 +39,7 @@ public class Main extends PApplet implements Constants
     private void updateObjects()
     {
         for(Player p: users.values()) {
-            p.update(collision);
+            collision(p);
             users.replace(p.id, p);
         }
     }
@@ -93,16 +92,16 @@ public class Main extends PApplet implements Constants
             case LEFT:
                 player.left = -1;
                 player.dir = 1;
-                client.send(event_type.INPUT, player, true);
+                client.send(event_type.INPUT, true, player, users);
                 break;
             case RIGHT:
                 player.right = 1;
                 player.dir = -1;
-                client.send(event_type.INPUT, player, true);
+                client.send(event_type.INPUT, true, player, users);
                 break;
             case 32:
                 player.up = -1;
-                client.send(event_type.INPUT, player, true);
+                client.send(event_type.INPUT, true, player, users);
                 break;
         }
     }
@@ -119,15 +118,15 @@ public class Main extends PApplet implements Constants
         switch(keyCode) {
             case LEFT:
                 player.left = 0;
-                client.send(event_type.INPUT, player, true);
+                client.send(event_type.INPUT, true, player, users);
                 break;
             case RIGHT:
                 player.right = 0;
-                client.send(event_type.INPUT, player, true);
+                client.send(event_type.INPUT, true, player, users);
                 break;
             case 32:
                 player.up = 0;
-                client.send(event_type.INPUT, player, true);
+                client.send(event_type.INPUT, true, player, users);
                 break;
         }
     }
@@ -140,34 +139,68 @@ public class Main extends PApplet implements Constants
         updateObjects();
     }
 
+    public void exit()
+    {
+        client.close();
+        super.exit();
+    }
+
     public void handleEvent(Event e)
     {
         if(e != null) {
+            Player p;
             collision = 0;
             switch (e.type()) {
-                case SPAWN:
+                case COLLISION:
+                case DEATH:
+                    users = (Hashtable) e.data().get(event_obj.USERS);
+                    LinkedList<Collidable> objects = (LinkedList) e.data().get(event_obj.COLLIDABLES);
+                    p = users.get(e.data().get(event_obj.ID));
+                    for(Collidable obj: objects) {
+                        obj.handle(p);
+                        if(!(obj instanceof DeathZone))
+                            collision = 1;
+                    }
+                    break;
+                case INPUT:
                     users = (Hashtable) e.data().get(event_obj.USERS);
                     break;
-                case COLLISION:
-                    collision = 1;
-                case DEATH:
-                case INPUT:
-                    Player p = (Player) e.data().get(event_obj.PLAYER);
-                    users.replace(p.id, p);
+
+                case SPAWN:
+                    p = (Player) e.data().get(event_obj.PLAYER);
+                    users.put(p.id, p);
+                    break;
+                case LEAVE:
+                    users.remove(e.data().get(event_obj.ID));
                     break;
             }
         }
         //time = (Time) e.data().get(event_obj.TIME);
     }
 
-    public LinkedList<Collidable> collision(Rectangle pRect)
+    public void collision(Player player)
     {
-        LinkedList<Collidable> ret = new LinkedList<>();
+        LinkedList<Collidable> objects = new LinkedList<>();
         for (Collidable p : platforms) {
-            if (p != null && pRect.intersects(p.getRect()))
-                ret.add(p);
+            if(p != null) {
+                if(player.getRect().intersects(p.getRect())) {
+                    if(p instanceof DeathZone) {
+                        p.handle(player);
+                        return;
+                    }
+                    objects.add(p);
+                }
+            }
         }
-        return ret;
+        if(!objects.isEmpty()) {
+            //for(Collidable c : objects) {
+            Collidable c = objects.poll();
+            c.handle(player);
+            player.update(1);
+            //}
+        } else {
+            player.update(0);
+        }
 
     }
 

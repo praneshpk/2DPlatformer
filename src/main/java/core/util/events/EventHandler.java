@@ -21,24 +21,33 @@ public class EventHandler
             switch (type) {
                 case COLLISION:
                     inst.getClass()
-                            .getDeclaredMethod("handleCollision", LinkedList.class)
-                            .invoke(inst, args.get(Event.Obj.COLLIDABLES));
+                            .getDeclaredMethod("handleCollision", HashMap.class)
+                            .invoke(inst, args);
                     break;
                 case DEATH:
                     inst.getClass()
-                            .getDeclaredMethod("handleDeath")
-                            .invoke(inst);
+                            .getDeclaredMethod("handleDeath", HashMap.class)
+                            .invoke(inst, args);
+                    break;
+                case JOIN:
+                    inst.getClass()
+                            .getDeclaredMethod("handleJoin", HashMap.class)
+                            .invoke(inst, args);
                     break;
                 case SPAWN:
                     inst.getClass()
-                            .getDeclaredMethod("handleSpawn", UUID.class)
-                            .invoke(inst, (UUID) args.get(Event.Obj.ID));
+                            .getDeclaredMethod("handleSpawn", HashMap.class)
+                            .invoke(inst, args);
                     break;
                 case INPUT:
                     inst.getClass()
-                            .getDeclaredMethod("handleInput", Object.class)
-                            .invoke(inst, args.get(Event.Obj.PLAYER));
+                            .getDeclaredMethod("handleInput", HashMap.class)
+                            .invoke(inst, args);
                     break;
+                case LEAVE:
+                    inst.getClass()
+                            .getDeclaredMethod("handleLeave", HashMap.class)
+                            .invoke(inst, args);
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -73,35 +73,49 @@ public class Server extends Thread
         System.err.println("Sent " + data + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
     }
 
-    public void handleSpawn(UUID id) throws IOException
+    public void handleJoin(HashMap args) throws IOException
     {
-        HashMap<Event.Obj, Object> args = new HashMap<>();
-        args.put(event_obj.TIME, time);
-        Event send;
-
+        System.out.println(args + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
         // Check if server is full
         if (users.size() == MAX_USERS) {
+            args = new HashMap();
+            args.put(event_obj.TIME, time);
             args.put(event_obj.MSG, "Server is full");
-            send = new Event(event_type.ERROR, args);
+            send(new Event(event_type.ERROR, args), true);
         }
         else {
+            UUID e_id = (UUID) args.get(event_obj.ID);
             // Block gets executed once
-            if(!users.containsKey(id)) {
+            if(!users.containsKey(e_id)) {
                 synchronized (users) {
-                    users.put(id, new Player(id));
+                    users.put(e_id, new Player(e_id));
                 }
-                System.out.println(users.get(id).toString() + s.getLocalAddress() + " joined.");
+                System.out.println(users.get(e_id).toString() + s.getLocalAddress() + " joined.");
             }
-
-            if(cid.equals(id)) {
-                args.put(event_obj.PLAYER, users.get(id));
+            args = new HashMap();
+            args.put(event_obj.TIME, time);
+            if(cid.equals(e_id)) {
                 args.put(event_obj.COLLIDABLES, platforms);
+                args.put(event_obj.USERS, users);
             }
+            else
+                args.put(event_obj.PLAYER, users.get(e_id));
 
-            args.put(event_obj.USERS, users);
-            send = new Event(event_type.SPAWN, args);
+            send(new Event(event_type.SPAWN, args), true);
         }
-        send(send, true);
+    }
+
+    public void handleLeave(HashMap args) throws IOException
+    {
+        if(users.containsKey(args.get(event_obj.ID))) {
+            System.out.println(users.get(args.get(event_obj.ID)).toString() + " left.");
+            synchronized (users) {
+                users.remove(args.get(event_obj.ID));
+            }
+        }
+        args.replace(event_obj.TIME, time);
+        if(!cid.equals(args.get(event_obj.ID)))
+            send(new Event(event_type.LEAVE, args), true);
     }
 
     public void handleDeath()
@@ -109,30 +123,39 @@ public class Server extends Thread
 
     }
 
-    public void handleInput(Object data) throws IOException
+    public void handleInput(HashMap args) throws IOException
     {
-        HashMap<Event.Obj, Object> args = new HashMap<>();
-        args.put(event_obj.TIME, time);
+        // Defaults to sending back an input type
         event_type = event_type.INPUT;
 
-        Player p = (Player) data;
+        // Check if there are collisions
+        Player p = (Player) args.get(event_obj.PLAYER);
+//        LinkedList<Collidable> objects = collision(p.getRect());
 
-        LinkedList<Collidable> objects = collision(p.getRect());
-        if(!objects.isEmpty()) {
-            //Collidable c = objects.pop();
-            for(Collidable c : objects) {
-                c.handle(p);
-                if(!(c instanceof DeathZone))
-                    p.update(1);
+        // Update player in user list, if necessary
+        if(!users.get(p.id).equals(p)) {
+            synchronized (users) {
+                users = (Hashtable) args.get(event_obj.USERS);
+                users.replace(p.id, p);
             }
-            event_type = event_type.COLLISION;
         }
 
-        // Update player in user list
-        synchronized (users) {
-            users.replace(cid, p);
-        }
-        args.put(event_obj.PLAYER, p);
+        args = new HashMap();
+
+//        // Send back as collision event if found
+//        if (!objects.isEmpty()) {
+//            if(objects.peek() instanceof DeathZone)
+//                event_type = event_type.DEATH;
+//            else
+//                event_type = event_type.COLLISION;
+//            args.put(event_obj.ID, p.id);
+//            args.put(event_obj.COLLIDABLES, objects);
+//
+//        }
+
+        // Add standard args
+        args.put(event_obj.TIME, time);
+        args.put(event_obj.USERS, users);
         send(new Event(event_type, args), true);
     }
 
@@ -140,61 +163,39 @@ public class Server extends Thread
     {
         LinkedList<Collidable> ret = new LinkedList<>();
         for (Collidable p : platforms) {
-            if (p != null && pRect.intersects(p.getRect()))
-                ret.add(p);
+            if(p != null) {
+                p.update(time.getTime());
+                if(pRect.intersects(p.getRect())) {
+                    if(p instanceof DeathZone) {
+                        ret.clear();
+                        ret.add(p);
+                        return ret;
+                    }
+                    ret.add(p);
+                }
+            }
         }
         return ret;
 
     }
 
-    public void handleCollision(LinkedList<Collidable> data) throws IOException
-    {
-        HashMap<Event.Obj, Object> args = new HashMap<>();
-        args.put(event_obj.TIME, time);
-
-        Player p = (Player) data.pollLast();
-        for(Collidable c: data) {
-            c.handle(p);
-        }
-        p.update(1);
-        args.put(event_obj.PLAYER, p);
-        send(new Event(event_type.COLLISION, args), true);
-
-    }
-
-    public void mainLoop()
+    public void run()
     {
         Event receive;
         while (true) {
             try {
+
                 // Receive event data
                 receive = (Event) input.readObject();
                 System.err.println("Received " + receive + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+                em.handle(receive);
             } catch (Exception e) {
+                //s.close();
+                for(EventHandler h: handlers)
+                    em.unRegister(h);
                 //e.printStackTrace();
                 break;
             }
-
-            try {
-                em.handle(receive);
-            } catch (Exception e) {
-                e.printStackTrace();
-                break;
-            }
-        }
-    }
-
-    public void run()
-    {
-        mainLoop();
-        try {
-            System.out.println(users.get(cid).toString() + " left.");
-            for(EventHandler h: handlers)
-                em.unRegister(h);
-            users.remove(cid);
-            s.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -218,7 +219,6 @@ public class Server extends Thread
         } catch (Exception e) {
             System.err.println("Error accepting client " + e);
         } finally {
-
             try {
                 server.close();
             } catch (IOException e) {

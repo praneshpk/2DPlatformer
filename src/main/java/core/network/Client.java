@@ -21,6 +21,7 @@ public class Client implements Constants
     private PApplet p;
     private Socket s;
     private UUID id;
+    private Thread t;
 
     private static String host;
     private static int port;
@@ -57,7 +58,6 @@ public class Client implements Constants
     public Event start()
     {
         Event e = null;
-        Thread t = null;
         try {
             s = new Socket(host, port);
 
@@ -78,7 +78,7 @@ public class Client implements Constants
             t.start();
 
             // Create a new player object
-            send(event_type.SPAWN, null, false);
+            send(event_type.JOIN, true, "");
 
             // Wait until an appropriate response is received
             while (true) {
@@ -107,21 +107,28 @@ public class Client implements Constants
         return e;
     }
 
-    public synchronized void send(Event.Type type, Object data, boolean uncached)
+    public void close()
+    {
+        t.interrupt();
+        send(event_type.LEAVE, false, id);
+    }
+
+    public synchronized void send(Event.Type type, boolean uncached, Object ...data)
     {
         HashMap<Event.Obj, Object> args = new HashMap<>();
-        if(data != null) {
-            for(Event.Obj o : event_obj.values())
-                if(o.type().equals(data.getClass()))
-                    args.put(o, data);
+        for(Object d: data) {
+            if (d != null) {
+                for (Event.Obj o : event_obj.values())
+                    if (o.type().equals(d.getClass()))
+                        args.put(o, d);
+            }
         }
         args.put(Event.Obj.ID, id);
         args.put(Event.Obj.TIME, time);
-        Event event = new Event(type, args);
         try {
             if (uncached)
                 output.reset();
-            output.writeObject(event);
+            output.writeObject(new Event(type, args));
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error: Server has been stopped");
