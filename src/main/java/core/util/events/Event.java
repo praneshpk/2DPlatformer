@@ -33,8 +33,8 @@ public class Event implements Serializable, Comparable<Event>
     @Override
     public int compareTo(Event o)
     {
-//        if(type.compareTo(o.type) != 0)
-//            return type.compareTo(o.type);
+        if(type.compareTo(o.type) != 0)
+            return type.compareTo(o.type);
 
         Time t1 = (Time) data.get(Obj.TIME);
         Time t2 = (Time) o.data().get(Obj.TIME);
@@ -70,6 +70,6 @@ public class Event implements Serializable, Comparable<Event>
 
     public enum Type
     {
-        JOIN, LEAVE, SPAWN, DEATH, COLLISION, INPUT, ERROR
+        JOIN, LEAVE, SPAWN, DEATH, INPUT, COLLISION, ERROR
     }
 }

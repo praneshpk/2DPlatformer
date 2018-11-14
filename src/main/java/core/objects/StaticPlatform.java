@@ -7,45 +7,19 @@ import java.awt.*;
 
 import static core.util.Constants.PLAYER_SZ;
 
-public class StaticPlatform implements Collidable
+public class StaticPlatform extends Collidable
 {
-    Type type = Type.STATIC_PLATFORM;
-    protected final Rectangle rect;
-    protected final PVector pos;
-    protected final Color color;
-
     public StaticPlatform(PVector pos, float w, float h, Color c)
     {
+        type = Type.STATIC_PLATFORM;
         color = c;
         this.pos = pos;
         rect = new Rectangle((int) pos.x, (int) pos.y, (int) w, (int) h);
     }
 
-    public Rectangle getRect()
-    {
-        return rect;
-    }
-
     @Override
-    public PVector getPos()
-    {
-        return pos;
-    }
-
-    @Override
-    public Type type() { return type; }
-
-    public void display(PApplet p, long cycle)
-    {
-        update(cycle);
-        p.fill(color.getRGB());
-        p.noStroke();
-        p.rect(pos.x, pos.y, this.rect.width, this.rect.height);
-    }
-
     public void update(long cycle)
     {
-
     }
 
     @Override
@@ -60,7 +34,4 @@ public class StaticPlatform implements Collidable
             p = tmp;
         }
     }
-
-    @Override
-    public int compareTo(Collidable o) { return type.compareTo(o.type()); }
 }

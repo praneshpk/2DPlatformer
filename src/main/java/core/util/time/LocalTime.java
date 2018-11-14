@@ -34,10 +34,7 @@ public class LocalTime extends Time
     }
 
     @Override
-    public void pause()
-    {
-        pause = anchor.getTime();
-    }
+    public void pause() { pause = anchor.getTime(); }
 
     @Override
     public void unPause()

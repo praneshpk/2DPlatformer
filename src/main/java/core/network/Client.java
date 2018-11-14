@@ -1,11 +1,8 @@
 package core.network;
 
-import core.objects.Collidable;
 import core.util.Constants;
 import core.util.events.Event;
 
-import core.util.events.EventHandler;
-import core.util.events.EventManager;
 import core.util.time.GlobalTime;
 import core.util.time.LocalTime;
 import processing.core.PApplet;
@@ -14,12 +11,33 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.UUID;
 
 public class Client implements Constants
 {
+    private class EventListener implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            while(true) {
+                try {
+                    Object o = input.readObject();
+                    if(o instanceof Event) {
+                        synchronized (events) {
+                            events.add((Event)o);
+                        }
+                        System.err.println("Received " + o );
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    break;
+                }
+            }
+        }
+    }
+
     private PApplet p;
     private Socket s;
     private UUID id;
@@ -47,15 +65,6 @@ public class Client implements Constants
     public long getTime() { return time.getTime(); }
 
     public UUID id() { return id; }
-
-    public Event receive()
-    {
-        Event e = null;
-        synchronized (events) {
-            e = events.poll();
-        }
-        return e;
-    }
 
     public Event start()
     {
@@ -98,11 +107,7 @@ public class Client implements Constants
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            try {
-                t.join();
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }
+            t.interrupt();
             System.exit(1);
         }
         return e;
@@ -139,25 +144,26 @@ public class Client implements Constants
         }
     }
 
-    private class EventListener implements Runnable
+    public Event receive()
     {
-        @Override
-        public void run()
-        {
-            while(true) {
-                try {
-                    Object o = input.readObject();
-                    if(o instanceof Event) {
-                        synchronized (events) {
-                            events.add((Event)o);
-                        }
-                        System.err.println("Received " + o );
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    break;
-                }
-            }
+        Event e = null;
+        synchronized (events) {
+            e = events.poll();
+        }
+        return e;
+    }
+
+    public void pause(boolean pause)
+    {
+        if(pause) {
+            time.pause();
+            System.out.println("Paused");
+        } else {
+            time.unPause();
+            System.out.println("Unpaused");
         }
     }
+
+
+
 }

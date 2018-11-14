@@ -1,25 +1,40 @@
 package core.objects;
 
+import core.util.Constants;
 import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.awt.*;
 import java.io.Serializable;
 
-public interface Collidable extends Serializable, Comparable<Collidable>
+public abstract class Collidable
+        implements Constants, Serializable, Comparable<Collidable>
 {
-    enum Type
+    protected enum Type
     {
         DEATH_ZONE, MOVING_PLATFORM, STATIC_PLATFORM, PLAYER
     }
-    Type type();
+    Type type;
+    Color color;
+    Rectangle rect;
+    PVector pos;
 
-    void display(PApplet p, long cycle);
+    Type type() { return type; }
 
-    void update(long cycle);
+    public void display(PApplet p, long cycle)
+    {
+        update(cycle);
+        p.fill(color.getRGB());
+        p.noStroke();
+        p.rect(pos.x, pos.y, rect.width, rect.height);
+    }
 
-    void handle(Collidable p);
+    public abstract void update(long cycle);
 
-    Rectangle getRect();
-    PVector getPos();
+    public abstract void handle(Collidable p);
+
+    public Rectangle getRect() { return rect; }
+
+    public int compareTo(Collidable o) { return type.compareTo(o.type()); }
+
 }

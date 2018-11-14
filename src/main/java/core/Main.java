@@ -8,8 +8,6 @@ import core.objects.Player;
 import core.util.Constants;
 import core.util.events.Event;
 import processing.core.PApplet;
-
-import java.awt.*;
 import java.net.Socket;
 import java.util.*;
 
@@ -21,10 +19,10 @@ public class Main extends PApplet implements Constants
     private static LinkedList<Collidable> platforms;
     private Hashtable<UUID, Player> users;
     private Event event;
-    protected Event.Type event_type;
-    protected Event.Obj event_obj;
+    private Event.Type event_type;
+    private Event.Obj event_obj;
     private Client client;
-    private int collision = 0;
+    private boolean pause;
 
     private void renderObjects()
     {
@@ -51,6 +49,7 @@ public class Main extends PApplet implements Constants
     {
         // Initialize variables
         Socket s = null;
+        pause = false;
         client = new Client(Server.HOSTNAME, Server.PORT);
         event = client.start();
 
@@ -101,6 +100,10 @@ public class Main extends PApplet implements Constants
                 player.up = -1;
                 client.send(event_type.INPUT, true, player, users);
                 break;
+            case 'P':
+                pause = !pause;
+                client.pause(pause);
+                break;
         }
     }
 
@@ -147,7 +150,6 @@ public class Main extends PApplet implements Constants
     {
         if(e != null) {
             Player p;
-            collision = 0;
             switch (e.type()) {
                 case COLLISION:
                 case DEATH:

@@ -106,8 +106,6 @@ public class Server extends Thread
             else
                 args.put(event_obj.PLAYER, users.get(e_id));
 
-            for (int i = 0; i < 4; i++)
-                System.out.println(platforms.get(i+1).getPos());
             send(new Event(event_type.SPAWN, args), true);
         }
     }

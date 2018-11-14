@@ -7,33 +7,20 @@ import processing.core.PVector;
 import java.awt.*;
 import java.util.Random;
 
-public class DeathZone implements Collidable, Constants
+public class DeathZone extends Collidable
 {
-
-    final Type type = Type.DEATH_ZONE;
-    protected final Rectangle rect;
-    protected final PVector pos;
-
     public DeathZone(PVector pos, float w, float h)
     {
+        type = Type.DEATH_ZONE;
         this.pos = pos;
         rect = new Rectangle((int) pos.x, (int) pos.y, (int) w, (int) h);
     }
 
     @Override
-    public Type type() { return type; }
+    public void display(PApplet p, long cycle) { }
 
     @Override
-    public void display(PApplet p, long cycle)
-    {
-
-    }
-
-    @Override
-    public void update(long cycle)
-    {
-
-    }
+    public void update(long cycle) { }
 
     @Override
     public void handle(Collidable p)
@@ -50,23 +37,5 @@ public class DeathZone implements Collidable, Constants
             tmp.velocity = new PVector(0, 0);
             p = tmp;
         }
-    }
-
-    @Override
-    public Rectangle getRect()
-    {
-        return rect;
-    }
-
-    @Override
-    public PVector getPos()
-    {
-        return pos;
-    }
-
-    @Override
-    public int compareTo(Collidable o)
-    {
-        return type.compareTo(o.type());
     }
 }

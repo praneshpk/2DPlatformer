@@ -5,12 +5,10 @@ import processing.core.PVector;
 
 import java.awt.*;
 
-public class MovingPlatform extends StaticPlatform implements Collidable, Constants
+public class MovingPlatform extends StaticPlatform
 {
-    final Type type = Type.MOVING_PLATFORM;
     private PVector lo, hi, dir;
     private float time;
-
 
     /**
      * Creates a basic Moving Platform object with a random color
@@ -22,14 +20,12 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Consta
     public MovingPlatform(PVector pos, PVector dir)
     {
         super(pos, MV_PLATORM[0], MV_PLATORM[1], new Color((int) (Math.random() * 0x1000000)));
+        type = Type.MOVING_PLATFORM;
         this.dir = dir;
         this.time = 3;
         this.lo = new PVector(pos.x, pos.y);
         this.hi = new PVector(pos.x - dir.x * time, pos.y - dir.y * time);
     }
-
-    @Override
-    public Type type() { return type; }
 
     @Override
     public void update(long cycle)
@@ -49,12 +45,4 @@ public class MovingPlatform extends StaticPlatform implements Collidable, Consta
         rect.y = (int) pos.y;
 
     }
-
-    public PVector getDir()
-    {
-        return dir;
-    }
-
-    @Override
-    public int compareTo(Collidable o) { return type.compareTo(o.type()); }
 }
