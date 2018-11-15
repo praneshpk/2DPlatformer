@@ -13,7 +13,7 @@ import java.util.UUID;
 public class Event implements Serializable, Comparable<Event>
 {
     private Type type;
-    private HashMap data;
+    private HashMap<Obj, Object> data;
 
     public Event(Type type, HashMap data)
     {

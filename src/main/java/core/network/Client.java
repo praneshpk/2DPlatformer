@@ -166,6 +166,7 @@ public class Client implements Constants
     public void close()
     {
         t.interrupt();
+        replay = false;
         send(event_type.LEAVE, false, id);
         log.delete();
     }
