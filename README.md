@@ -23,7 +23,7 @@ Run the `LaunchGame.sh` shell script in the root of the project to compile and r
 
 Run the following command to compile the program
 ```
-mvn package
+mvn package -Dmaven.test.skip=true
 ```
 
 ### Running the game server process
@@ -40,7 +40,21 @@ Run the following command to connect to the server and start the Processing sket
 java -cp target/2DPlatformer-0.3.0.jar core.Main
 ```
 
-Use the left and right arrow keys to move around, spacebar to jump.
+## Controls
+
+|Key|Description|
+|---|-----------|
+| Left / Right Arrow keys | Move left / right  |
+| Spacebar | Jump |
+| | Pause (in recording mode)|
+| r | Toggle recording |
+| q | Quit playback mode |
+| 1 | Playback at normal speed |
+| 2 | Playback at double speed |
+| 3 | Playback at half speed |
+
+The Sketch window will have a red shade to indicate that recording is in progress and will have a gray shade to indicate that the user is in playback mode.
+
 
 
 **A maximum of 6 users can be connected to the server at once, as determined in the core.network.Server class*
