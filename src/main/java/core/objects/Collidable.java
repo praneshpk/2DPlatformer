@@ -21,7 +21,7 @@ public abstract class Collidable
 
     Type type() { return type; }
 
-    public void display(PApplet p, long cycle)
+    public void display(PApplet p, float cycle)
     {
         update(cycle);
         p.fill(color.getRGB());
@@ -29,7 +29,7 @@ public abstract class Collidable
         p.rect(pos.x, pos.y, rect.width, rect.height);
     }
 
-    public abstract void update(long cycle);
+    public abstract void update(float cycle);
 
     public abstract void handle(Collidable p);
 

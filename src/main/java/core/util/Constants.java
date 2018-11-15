@@ -22,5 +22,5 @@ public interface Constants
     };
     int PLATFORMS = 20;
     int[] MV_PLATORM = {50, 5};
-
+    int TIC = 1;
 }

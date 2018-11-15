@@ -14,21 +14,32 @@ public class LocalTimeTest
     public void getTime() throws InterruptedException
     {
         GlobalTime gt = new GlobalTime(1);
-        LocalTime lt = new LocalTime(gt, 1000);
         gt.start();
+        Thread.sleep(2000);
+        LocalTime lt = new LocalTime(gt, 1);
         lt.start();
-        Thread.sleep(1000);
-        assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
         gt.pause();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         gt.unPause();
-        assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
+        System.out.println("GT: " + gt.getTime());
+        System.out.println("LT: " + lt.getTime());
+        gt.pause();
+        System.out.println("GT: " + gt.getTime());
+        System.out.println("LT: " + lt.getTime());
+        Thread.sleep(2000);
+        gt.unPause();
+        System.out.println("GT: " + gt.getTime());
+        System.out.println("LT: " + lt.getTime());
         lt.pause();
         Thread.sleep(2000);
-        assertEquals(1, lt.getTime());
         lt.unPause();
-        assertEquals(3, lt.getTime());
-        assertEquals(gt.getTime(), lt.getTime() * 1000, 10);
-        System.err.println("global: " + gt.getTime() + " local: " + lt.getTime());
+        System.out.println("GT: " + gt.getTime());
+        System.out.println("LT: " + lt.getTime());
+        lt.reset();
+        System.out.println("GT: " + gt.getTime());
+        System.out.println("LT: " + lt.getTime());
+        Thread.sleep(2000);
+        System.out.println("GT: " + gt.getTime());
+        System.out.println("LT: " + lt.getTime());
     }
 }

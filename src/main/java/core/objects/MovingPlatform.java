@@ -22,13 +22,13 @@ public class MovingPlatform extends StaticPlatform
         super(pos, MV_PLATORM[0], MV_PLATORM[1], new Color((int) (Math.random() * 0x1000000)));
         type = Type.MOVING_PLATFORM;
         this.dir = dir;
-        this.time = 3;
+        this.time = 3/(float)TIC;
         this.lo = new PVector(pos.x, pos.y);
         this.hi = new PVector(pos.x - dir.x * time, pos.y - dir.y * time);
     }
 
     @Override
-    public void update(long cycle)
+    public void update(float cycle)
     {
         float elapsed = cycle % (time * 2 * 1000) / 1000f;
         if (elapsed < time) {

@@ -20,7 +20,7 @@ public class Player extends Collidable
     public Collidable collide;
 
     protected PVector velocity;
-    protected int ground = GROUND;
+    public int ground = GROUND;
 
     private static final float jumpSpeed = 6;
     private static final float walkSpeed = 3;
@@ -45,20 +45,17 @@ public class Player extends Collidable
      * Adapted from
      * https://www.openprocessing.org/sketch/92234
      */
-    public void update(long cycle)
+    public void update(float cycle)
     {
-        if(cycle == 0)
-            ground = GROUND;
-
         if (pos.y < ground) {
-            velocity.y += GRAVITY;
+            velocity.y += GRAVITY / cycle;
         } else
             velocity.y = 0;
 
         if (pos.y >= ground && up != 0)
             velocity.y = -jumpSpeed;
 
-        velocity.x = walkSpeed * (left + right);
+        velocity.x = walkSpeed / cycle * (left + right);
 
         PVector nextPos = new PVector(pos.x, pos.y);
         nextPos.add(velocity);
@@ -78,8 +75,9 @@ public class Player extends Collidable
     }
 
     @Override
-    public void display(PApplet p, long cycle)
+    public void display(PApplet p, float cycle)
     {
+        update(cycle);
         p.fill(color.getRGB());
         p.noStroke();
         p.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);

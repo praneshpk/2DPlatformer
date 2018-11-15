@@ -18,7 +18,7 @@ public class StaticPlatform extends Collidable
     }
 
     @Override
-    public void update(long cycle)
+    public void update(float cycle)
     {
     }
 

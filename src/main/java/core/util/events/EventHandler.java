@@ -30,6 +30,12 @@ public class EventHandler
                             .getDeclaredMethod("handleUpdate", type.getClass(), HashMap.class)
                             .invoke(inst, type, args);
                     break;
+                case START_REC:
+                case STOP_REC:
+                    inst.getClass()
+                            .getDeclaredMethod("handleRecord", type.getClass(), HashMap.class)
+                            .invoke(inst, type, args);
+                    break;
                 case LEAVE:
                     inst.getClass()
                             .getDeclaredMethod("handleLeave", HashMap.class)

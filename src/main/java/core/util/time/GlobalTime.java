@@ -2,25 +2,36 @@ package core.util.time;
 
 public class GlobalTime extends Time
 {
-    public GlobalTime(int tic)
-    {
-        this.tic = tic;
-    }
+    public GlobalTime(int tic) { this.tic = tic; }
 
     @Override
     public long getTime()
     {
-        if(pause == 0)
-            return (System.currentTimeMillis() - start - pausedTime) / tic;
+        if(marker == 0)
+            return (long)((System.currentTimeMillis() - start - pausedTime) / tic);
         else
-            return (pause - start) / tic;
+            return (long)((marker - start - pausedTime) / tic);
     }
 
     @Override
     public void start()
     {
         start = System.currentTimeMillis();
-        pause = 0;
+        marker = 0;
         pausedTime = 0;
+    }
+
+    @Override
+    public void pause()
+    {
+        marker = System.currentTimeMillis();
+    }
+
+    @Override
+    public void unPause()
+    {
+        pausedTime += System.currentTimeMillis() - marker;
+        marker = 0;
+
     }
 }

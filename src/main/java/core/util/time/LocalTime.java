@@ -2,45 +2,46 @@ package core.util.time;
 
 public class LocalTime extends Time
 {
-    GlobalTime anchor;
+    Time anchor;
 
-    public LocalTime(int tic)
+    public LocalTime(Time anchor, int tic)
     {
-        anchor = new GlobalTime(tic);
-        this.tic = tic;
-    }
-
-    public LocalTime(GlobalTime global, int tic)
-    {
-        anchor = global;
+        this.anchor = anchor;
         this.tic = tic;
     }
 
     @Override
     public long getTime()
     {
-        if(pause == 0)
-            return (anchor.getTime() - pausedTime) / tic;
+        if(marker == 0)
+            return (long)((anchor.getTime() - pausedTime) / tic);
         else
-            return pause / tic;
+            return (long)((marker - pausedTime) / tic);
     }
 
     @Override
     public void start()
     {
-        start = anchor.start;
-        pause = 0;
+        start = anchor.getTime();
+        marker = 0;
         pausedTime = 0;
     }
 
-    @Override
-    public void pause() { pause = anchor.getTime(); }
+    public void reset()
+    {
+        pausedTime = anchor.getTime() - start;
+    }
 
     @Override
+    public void pause()
+    {
+        marker = anchor.getTime();
+    }
+
     public void unPause()
     {
-        pausedTime = pause / tic;
-        pause = 0;
+        pausedTime += anchor.getTime() - marker;
+        marker = 0;
     }
 
 }

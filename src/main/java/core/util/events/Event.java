@@ -1,5 +1,6 @@
 package core.util.events;
 
+import core.objects.Collidable;
 import core.objects.Player;
 import core.util.time.Time;
 
@@ -36,14 +37,14 @@ public class Event implements Serializable, Comparable<Event>
         if(type.compareTo(o.type) != 0)
             return type.compareTo(o.type);
 
-        Time t1 = (Time) data.get(Obj.TIME);
-        Time t2 = (Time) o.data().get(Obj.TIME);
-
-        if(t1 == null || t2 == null)
+        if(!data.containsKey(Obj.TIMESTAMP) || !o.data().containsKey(Obj.TIMESTAMP))
             return 0;
-        if(t1.getTime() > t2.getTime())
+        long t1 = (long) data.get(Obj.TIMESTAMP);
+        long t2 = (long) o.data().get(Obj.TIMESTAMP);
+
+        if(t1 > t2)
             return 1;
-        else if(t1.getTime() == t2.getTime())
+        else if(t1 == t2)
             return 0;
         else
             return -1;
@@ -54,7 +55,8 @@ public class Event implements Serializable, Comparable<Event>
     {
         ID(UUID.class),
         TIME(Time.class),
-        COLLIDABLES(LinkedList.class),
+        TIMESTAMP(long.class),
+        LIST(LinkedList.class),
         USERS(Hashtable.class),
         PLAYER(Player.class),
         MSG(String.class);
@@ -70,6 +72,6 @@ public class Event implements Serializable, Comparable<Event>
 
     public enum Type
     {
-        JOIN, LEAVE, SPAWN, DEATH, INPUT, COLLISION, ERROR
+        JOIN, LEAVE, SPAWN, DEATH, INPUT, COLLISION, START_REC, STOP_REC, ERROR
     }
 }

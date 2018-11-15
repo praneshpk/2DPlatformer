@@ -2,26 +2,23 @@ package core.network;
 
 
 import core.objects.Collidable;
-import core.objects.DeathZone;
 import core.objects.Player;
-import core.objects.StaticPlatform;
+import core.util.Constants;
 import core.util.events.Event;
 import core.util.events.EventHandler;
 import core.util.events.EventManager;
 import core.util.time.GlobalTime;
 
-import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
-public class Server extends Thread
+public class Server extends Thread implements Constants
 {
     public static int PORT = 4096;
     public static String HOSTNAME = "127.0.0.1";
     public static int MAX_USERS = 6;
-    public static final int TIC = 1;
 
     protected static volatile LinkedList<Collidable> platforms;
     protected static volatile Hashtable<UUID, Player> users;
@@ -31,12 +28,13 @@ public class Server extends Thread
     protected Socket s;
 
     private ServerSocket server;
-    private ObjectInputStream input;
-    private ObjectOutputStream output;
+    private ObjectInputStream input, f_input;
+    private ObjectOutputStream output, f_output;
     private Event.Type event_type;
     private Event.Obj event_obj;
     private UUID cid;
     private LinkedList<EventHandler> handlers;
+    private boolean recording;
 
     public Server(Socket s)
     {
@@ -51,6 +49,7 @@ public class Server extends Thread
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         handlers = new LinkedList<>();
         for(Event.Type t : event_type.values()) {
             handlers.add(new EventHandler(this, t));
@@ -67,22 +66,20 @@ public class Server extends Thread
         em = new EventManager();
     }
 
-    private synchronized void send(Object data, boolean uncached) throws IOException
+    private synchronized void send(Event data, boolean uncached) throws IOException
     {
         if(uncached)
             output.reset();
         output.writeObject(data);
-        System.err.println("Sent " + data + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+//        System.err.println("Sent " + data + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
     }
 
     public void handleJoin(HashMap args) throws IOException
     {
-
-        System.out.println(args + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
         // Check if server is full
         if (users.size() == MAX_USERS) {
             args = new HashMap();
-            args.put(event_obj.TIME, time);
+            args.put(event_obj.TIMESTAMP, time.getTime());
             args.put(event_obj.MSG, "Server is full");
             send(new Event(event_type.ERROR, args), true);
         }
@@ -100,7 +97,7 @@ public class Server extends Thread
             args = new HashMap();
             args.put(event_obj.TIME, time);
             if(cid.equals(e_id)) {
-                args.put(event_obj.COLLIDABLES, platforms);
+                args.put(event_obj.LIST, platforms);
                 args.put(event_obj.USERS, users);
             }
             else
@@ -118,7 +115,7 @@ public class Server extends Thread
                 users.remove(args.get(event_obj.ID));
             }
         }
-        args.replace(event_obj.TIME, time);
+        args.replace(event_obj.TIMESTAMP, time.getTime());
         if(!cid.equals(args.get(event_obj.ID)))
             send(new Event(event_type.LEAVE, args), true);
     }
@@ -139,20 +136,30 @@ public class Server extends Thread
         args = new HashMap();
 
         // Add standard args
-        args.put(event_obj.TIME, time);
+        args.put(event_obj.TIMESTAMP, time.getTime());
         args.put(event_obj.USERS, users);
         send(new Event(type, args), true);
     }
+
+    public void handleRecord(Event.Type type, HashMap args) throws IOException
+    {
+        // Echo event to caller
+        if(cid.equals(args.get(event_obj.ID))) {
+            // Add standard args
+            args.replace(event_obj.TIMESTAMP, time.getTime());
+            send(new Event(type, args), true);
+        }
+    }
+
 
     public void run()
     {
         Event receive;
         while (true) {
             try {
-
                 // Receive event data
                 receive = (Event) input.readObject();
-                System.err.println("Received " + receive + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
+//                System.err.println("Received " + receive + " from thread " + Thread.currentThread().getId() + s.getLocalAddress());
                 em.handle(receive);
             } catch (Exception e) {
                 //s.close();

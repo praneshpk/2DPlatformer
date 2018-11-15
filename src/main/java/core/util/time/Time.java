@@ -5,23 +5,20 @@ import java.io.Serializable;
 public abstract class Time implements Serializable
 {
     protected long start;
+    protected long marker;
     protected long pausedTime;
-    protected long pause;
-    protected int tic;
+    protected float tic;
+
+    public float getTic() { return tic; }
+
+    public void setTic(float tic) { this.tic = tic; }
 
     public abstract long getTime();
 
     public abstract void start();
 
-    public void pause()
-    {
-        pause = System.currentTimeMillis();
-    }
+    public abstract void pause();
 
-    public void unPause()
-    {
-        pausedTime = (System.currentTimeMillis() - pause) / tic;
-        pause = 0;
-    }
+    public abstract void unPause();
 
 }

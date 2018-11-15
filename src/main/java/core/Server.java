@@ -43,13 +43,13 @@ public class Server extends core.network.Server implements Constants
         }
 
         platforms.add(new MovingPlatform(new PVector(WIDTH / 2, HEIGHT / 3),
-                new PVector(-35, 0)));
+                new PVector(-35 * TIC, 0)));
         platforms.add(new MovingPlatform(new PVector(MV_PLATORM[0] * 4, HEIGHT / 2),
-                new PVector(35, 0)));
+                new PVector(35 * TIC, 0)));
         platforms.add(new MovingPlatform(new PVector(MV_PLATORM[0], HEIGHT - 50),
-                new PVector(0, 50)));
+                new PVector(0, 50 * TIC)));
         platforms.add(new MovingPlatform(new PVector(WIDTH - 200, HEIGHT - 50),
-                new PVector(0, 50)));
+                new PVector(0, 50 * TIC)));
     }
 
     public boolean collision(Rectangle pRect, LinkedList<Collidable> platforms)
