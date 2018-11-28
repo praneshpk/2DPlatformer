@@ -8,7 +8,6 @@ import core.objects.Player;
 import core.util.Constants;
 import core.util.events.Event;
 import processing.core.PApplet;
-import java.net.Socket;
 import java.util.*;
 
 /**
@@ -55,7 +54,6 @@ public class Main extends PApplet implements Constants
     public void setup()
     {
         // Initialize variables
-        Socket s = null;
         client = new Client(Server.HOSTNAME, Server.PORT);
         client.start();
 

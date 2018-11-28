@@ -39,6 +39,18 @@ public class Player extends Collidable
         color = new Color(40 + r.nextInt(10) * 12);
     }
 
+    public Player()
+    {
+        id = UUID.randomUUID();
+        type = Type.PLAYER;
+        collide = null;
+        pos = new PVector(0, PLAYER_SZ);
+        rect = new Rectangle((int) pos.x, (int) pos.y, PLAYER_SZ, PLAYER_SZ);
+        dir = 1;
+        velocity = new PVector(0,0);
+        color = new Color(0);
+    }
+
     /**
      * Updates the player's current state
      * <p>

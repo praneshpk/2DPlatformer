@@ -52,6 +52,12 @@ public class Server extends core.network.Server implements Constants
                 new PVector(0, 50 * TIC)));
     }
 
+    public Server(LinkedList<Collidable> platforms)
+    {
+        super();
+        this.platforms = platforms;
+    }
+
     public boolean collision(Rectangle pRect, LinkedList<Collidable> platforms)
     {
         for (Collidable p : platforms)
