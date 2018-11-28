@@ -18,10 +18,11 @@ public class Main extends PApplet implements Constants
     private Event event;
     private Event.Type event_type;
     private Event.Obj event_obj;
-    private Client client;
+    public static Client client;
     private boolean pause = false, mem = false;
     private long wait, offset = 0;
     private Event start;
+    private static int bg = 255;
 
     private void renderObjects()
     {
@@ -30,7 +31,7 @@ public class Main extends PApplet implements Constants
         else if(client.replay)
             background(245);
         else
-            background(255);
+            background(bg);
         for (Collidable p : client.platforms())
             p.display(this, client.time().getTime() - offset);
         for(Player p: client.users.values()) {
@@ -60,7 +61,7 @@ public class Main extends PApplet implements Constants
         // Processing window settings
         smooth();
         noStroke();
-        fill(0, 255, 0);
+        fill(0, bg, 0);
     }
 
     /**
@@ -68,6 +69,8 @@ public class Main extends PApplet implements Constants
      */
     public static void main(String[] args)
     {
+        if(args.length > 0)
+            bg = parseInt(args[0]);
         // Initialize PApplet
         PApplet.main("core.Main", args);
     }

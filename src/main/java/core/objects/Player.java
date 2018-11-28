@@ -100,4 +100,8 @@ public class Player extends Collidable
     {
         return "Player-" + id.toString().substring(0, 8);
     }
+
+    public void setColor(int r, int g, int b) {
+        color = new Color(r,g,b);
+    }
 }
