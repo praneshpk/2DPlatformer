@@ -15,24 +15,31 @@ import java.util.UUID;
  */
 public class Player extends Collidable
 {
-    public final UUID id;
-    public float dir, left, right, up;
-    public Collidable collide;
+    private final UUID id;
+    protected float dir, left, right, up;
+    protected Collidable collide;
 
     protected PVector velocity;
-    public int ground = GROUND;
+    protected int ground = GROUND;
 
-    private static final float jumpSpeed = 6;
-    private static final float walkSpeed = 3;
+    protected static final float jumpSpeed = 6;
+    protected static final float walkSpeed = 3;
+    protected PVector[] spawnPts;
+
 
     public Player(UUID id)
     {
         type = Type.PLAYER;
+        spawnPts = core.Server.getSpawnPoints();
         Random r = new Random();
         collide = null;
         this.id = id;
-        int i = r.nextInt(SPAWN.length);
-        pos = new PVector(SPAWN[i].x, SPAWN[i].y - PLAYER_SZ);
+        if(spawnPts != null) {
+            int i = r.nextInt(spawnPts.length);
+            pos = new PVector(spawnPts[i].x, spawnPts[i].y - PLAYER_SZ);
+        } else {
+            pos = new PVector(0,HEIGHT - PLAYER_SZ);
+        }
         rect = new Rectangle((int) pos.x, (int) pos.y, PLAYER_SZ, PLAYER_SZ);
         dir = 1;
         velocity = new PVector(0, 0);
@@ -50,6 +57,40 @@ public class Player extends Collidable
         velocity = new PVector(0,0);
         color = new Color(0);
     }
+
+    public UUID getId() { return id; }
+
+    public float getDir() { return dir; }
+
+    public void setDir(float dir) { this.dir = dir; }
+
+    public float getLeft() { return left; }
+
+    public void setLeft(float left) { this.left = left; }
+
+    public float getRight() { return right; }
+
+    public void setRight(float right) { this.right = right; }
+
+    public float getUp() { return up; }
+
+    public void setUp(float up) { this.up = up; }
+
+    public Collidable getCollide() { return collide; }
+
+    public void setCollide(Collidable collide) { this.collide = collide; }
+
+    public PVector getVelocity() { return velocity; }
+
+    public void setVelocity(PVector velocity) { this.velocity = velocity; }
+
+    public int getGround() { return ground; }
+
+    public void setGround(int ground) { this.ground = ground; }
+
+    public static float getJumpSpeed() { return jumpSpeed; }
+
+    public static float getWalkSpeed() { return walkSpeed; }
 
     /**
      * Updates the player's current state
@@ -87,21 +128,9 @@ public class Player extends Collidable
     }
 
     @Override
-    public void display(PApplet p, float cycle)
-    {
-        update(cycle);
-        p.fill(color.getRGB());
-        p.noStroke();
-        p.rect(pos.x, pos.y, PLAYER_SZ, PLAYER_SZ);
-    }
-
-    @Override
     public String toString()
     {
         return "Player-" + id.toString().substring(0, 8);
     }
 
-    public void setColor(int r, int g, int b) {
-        color = new Color(r,g,b);
-    }
 }

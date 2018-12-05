@@ -1,4 +1,4 @@
-package core.util.scripts;
+package core.scripts;
 
 import core.util.events.Event;
 

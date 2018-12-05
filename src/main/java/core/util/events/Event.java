@@ -59,7 +59,8 @@ public class Event implements Serializable, Comparable<Event>
         LIST(LinkedList.class),
         USERS(Hashtable.class),
         PLAYER(Player.class),
-        MSG(String.class);
+        MSG(String.class),
+        KEY(Integer.class);
 
         private final Class<?> type;
         Obj(Class<?> type)

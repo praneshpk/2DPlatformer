@@ -43,7 +43,7 @@ public class Client implements Constants
     private UUID id;
     private Thread t;
     private static LinkedList<Collidable> platforms;
-    public Hashtable<UUID, Player> users;
+    private Hashtable<UUID, Player> users;
 
     private static String host;
     private static int port;
@@ -54,8 +54,8 @@ public class Client implements Constants
     private LocalTime replayTime;
     private PriorityQueue<Event> events;
     private EventListener listener;
-    private Event.Type event_type;
-    private Event.Obj event_obj;
+    public Event.Type event_type;
+    public Event.Obj event_obj;
     public boolean recording, replay;
     private Event currEvent;
 
@@ -78,6 +78,8 @@ public class Client implements Constants
     }
 
     public UUID id() { return id; }
+
+    public Hashtable<UUID, Player> users() { return users; }
 
     public static LinkedList<Collidable> platforms() { return platforms; }
 
@@ -169,6 +171,30 @@ public class Client implements Constants
         replay = false;
         send(event_type.LEAVE, false, id);
         log.delete();
+    }
+
+    public void handleEvent(Event e)
+    {
+        if(e != null) {
+            Player p;
+            switch (e.type()) {
+                case COLLISION:
+                case DEATH:
+                    break;
+                case START_REC:
+                case STOP_REC:
+                case INPUT:
+                    users = (Hashtable) e.data().get(event_obj.USERS);
+                    break;
+                case SPAWN:
+                    p = (Player) e.data().get(event_obj.PLAYER);
+                    users.put(p.getId(), p);
+                    break;
+                case LEAVE:
+                    users.remove(e.data().get(event_obj.ID));
+                    break;
+            }
+        }
     }
 
     public synchronized void send(Event.Type type, boolean uncached, Object ...data)

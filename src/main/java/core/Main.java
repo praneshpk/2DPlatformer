@@ -8,6 +8,8 @@ import core.objects.Player;
 import core.util.Constants;
 import core.util.events.Event;
 import processing.core.PApplet;
+import processing.core.PShape;
+
 import java.util.*;
 
 /**
@@ -15,16 +17,16 @@ import java.util.*;
  */
 public class Main extends PApplet implements Constants
 {
-    private Event event;
-    private Event.Type event_type;
-    private Event.Obj event_obj;
-    public static Client client;
-    private boolean pause = false, mem = false;
-    private long wait, offset = 0;
-    private Event start;
-    private static int bg = 255;
+    protected Event event;
+    protected static Event.Type event_type;
+    protected static Event.Obj event_obj;
+    protected static Client client;
+    protected boolean pause = false, mem = false;
+    protected long wait, offset = 0;
+    protected Event start;
+    protected static int bg = 255;
 
-    private void renderObjects()
+    protected void renderObjects()
     {
         if(client.recording)
             background(255,245,245);
@@ -34,17 +36,17 @@ public class Main extends PApplet implements Constants
             background(bg);
         for (Collidable p : client.platforms())
             p.display(this, client.time().getTime() - offset);
-        for(Player p: client.users.values()) {
+        for(Player p: client.users().values()) {
             p.display(this, client.time().getTic());
         }
     }
 
-    private void updateObjects()
+    protected void updateObjects()
     {
         if(!pause)
-            for(Player p: client.users.values()) {
+            for(Player p: client.users().values()) {
                 collision(p);
-                client.users.replace(p.id, p);
+                client.users().replace(p.getId(), p);
             }
     }
     public void settings()
@@ -58,6 +60,10 @@ public class Main extends PApplet implements Constants
         client = new Client(Server.HOSTNAME, Server.PORT);
         client.start();
 
+
+
+        //client
+
         // Processing window settings
         smooth();
         noStroke();
@@ -69,8 +75,6 @@ public class Main extends PApplet implements Constants
      */
     public static void main(String[] args)
     {
-        if(args.length > 0)
-            bg = parseInt(args[0]);
         // Initialize PApplet
         PApplet.main("core.Main", args);
     }
@@ -83,33 +87,33 @@ public class Main extends PApplet implements Constants
      */
     public void keyPressed()
     {
-        Player player = client.users.get(client.id());
+        Player player = client.users().get(client.id());
         if(!client.replay) {
             switch (keyCode) {
                 case LEFT:
-                    player.left = -1;
-                    player.dir = 1;
-                    client.send(event_type.INPUT, true, player, client.users);
+                    player.setLeft(-1);
+                    player.setDir(1);
+                    client.send(event_type.INPUT, true, player, client.users());
                     break;
                 case RIGHT:
-                    player.right = 1;
-                    player.dir = -1;
-                    client.send(event_type.INPUT, true, player, client.users);
+                    player.setRight(1);
+                    player.setDir(-1);
+                    client.send(event_type.INPUT, true, player, client.users());
                     break;
                 case 32:
-                    player.up = -1;
-                    client.send(event_type.INPUT, true, player, client.users);
+                    player.setUp(-1);
+                    client.send(event_type.INPUT, true, player, client.users());
                     break;
                 case 'R':
                     mem = true;
                     if(!client.recording) {
-                        client.send(event_type.START_REC, true, player, client.users);
+                        client.send(event_type.START_REC, true, player, client.users());
                     } else {
-                        client.send(event_type.STOP_REC, true, player, client.users);
+                        client.send(event_type.STOP_REC, true, player, client.users());
                         while (true) {
                             Event e = client.receive();
                             renderObjects();
-                            handleEvent(e);
+                            client.handleEvent(e);
                             updateObjects();
                             if (e != null && e.type() == event_type.STOP_REC) {
                                 break;
@@ -133,7 +137,7 @@ public class Main extends PApplet implements Constants
                     while (e != null) {
                         background(255);
                         renderObjects();
-                        handleEvent(e);
+                        client.handleEvent(e);
                         updateObjects();
                         e = client.receive();
                     }
@@ -169,19 +173,19 @@ public class Main extends PApplet implements Constants
     public void keyReleased()
     {
         if(!client.replay) {
-            Player player = client.users.get(client.id());
+            Player player = client.users().get(client.id());
             switch (keyCode) {
                 case LEFT:
-                    player.left = 0;
-                    client.send(event_type.INPUT, true, player, client.users);
+                    player.setLeft(0);
+                    client.send(event_type.INPUT, true, player, client.users());
                     break;
                 case RIGHT:
-                    player.right = 0;
-                    client.send(event_type.INPUT, true, player, client.users);
+                    player.setRight(0);
+                    client.send(event_type.INPUT, true, player, client.users());
                     break;
                 case 32:
-                    player.up = 0;
-                    client.send(event_type.INPUT, true, player, client.users);
+                    player.setUp(0);
+                    client.send(event_type.INPUT, true, player, client.users());
                     break;
             }
         }
@@ -193,11 +197,12 @@ public class Main extends PApplet implements Constants
         if(client.replay) {
             if(client.time().getTime() - offset >=
                     (long) start.data().get(event_obj.TIMESTAMP)) {
-                handleEvent(start);
+                client.handleEvent(start);
                 start = client.receive();
             }
         } else {
-            handleEvent(client.receive());
+            event = client.receive();
+            client.handleEvent(event);
         }
         updateObjects();
     }
@@ -208,30 +213,6 @@ public class Main extends PApplet implements Constants
         super.exit();
     }
 
-    public void handleEvent(Event e)
-    {
-        if(e != null) {
-            Player p;
-            switch (e.type()) {
-                case COLLISION:
-                case DEATH:
-                    break;
-                case START_REC:
-                case STOP_REC:
-                case INPUT:
-                    client.users = (Hashtable) e.data().get(event_obj.USERS);
-                    break;
-                case SPAWN:
-                    p = (Player) e.data().get(event_obj.PLAYER);
-                    client.users.put(p.id, p);
-                    break;
-                case LEAVE:
-                    client.users.remove(e.data().get(event_obj.ID));
-                    break;
-            }
-        }
-    }
-
     public void collision(Player player)
     {
         PriorityQueue<Collidable> objects = new PriorityQueue<>();
@@ -240,7 +221,7 @@ public class Main extends PApplet implements Constants
                 if(player.getRect().intersects(p.getRect())) {
                     if(p instanceof DeathZone) {
                         p.handle(player);
-                        client.send(event_type.DEATH, false, player, client.users);
+                        client.send(event_type.DEATH, false, player, client.users());
                         return;
                     }
                     objects.add(p);
@@ -250,12 +231,12 @@ public class Main extends PApplet implements Constants
         if(!objects.isEmpty()) {
             Collidable c = objects.poll();
             c.handle(player);
-            if(!c.equals(player.collide)) {
-                player.collide = c;
-                client.send(event_type.COLLISION, true, player, client.users);
+            if(!c.equals(player.getCollide())) {
+                player.setCollide(c);
+                client.send(event_type.COLLISION, true, player, client.users());
             }
         } else {
-            player.ground = GROUND;
+            player.setGround(GROUND);
         }
 
     }

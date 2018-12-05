@@ -126,10 +126,10 @@ public class Server extends Thread implements Constants
         Player p = (Player) args.get(event_obj.PLAYER);
 
         // Update player in user list, if necessary
-        if(!users.get(p.id).equals(p)) {
+        if(!users.get(p.getId()).equals(p)) {
             synchronized (users) {
                 users = (Hashtable) args.get(event_obj.USERS);
-                users.replace(p.id, p);
+                users.replace(p.getId(), p);
             }
         }
 
@@ -171,15 +171,10 @@ public class Server extends Thread implements Constants
         }
     }
 
-    public void listen()
+    public void listen() throws IOException
     {
         time.start();
-        try {
-            server = new ServerSocket(PORT);
-        } catch (Exception e) {
-            System.err.println("Can't initialize server: " + e);
-            System.exit(1);
-        }
+        server = new ServerSocket(PORT);
         System.out.println("Server started on " + server.getLocalSocketAddress());
 
         try {
