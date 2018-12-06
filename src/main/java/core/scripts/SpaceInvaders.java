@@ -41,7 +41,6 @@ public class SpaceInvaders extends Main
         for (Collidable p : client.platforms()) {
             if(((LinkedList)gameData.get("enemy").get("id")).contains(p.getId())) {
                 int iter = (int) (Math.ceil(time/100.0))*100;
-                //iter = (int)time;
                 LinkedList<PShape> imgSheet = (LinkedList) gameData.get("enemy").get("img");
                 p.display(this, imgSheet.get((iter/100)%imgSheet.size()), iter);
             } else if(((LinkedList)gameData.get("bullet").get("id")).contains(p.getId())) {
