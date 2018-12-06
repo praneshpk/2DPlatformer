@@ -21,7 +21,7 @@ public abstract class Collidable
     protected Color color;
     protected Rectangle rect;
     protected PVector pos;
-    protected String path;
+    protected Collidable collide;
 
     public UUID getId() { return id; }
 
@@ -41,9 +41,13 @@ public abstract class Collidable
 
     public void setRect(Rectangle rect) { this.rect = rect; }
 
+    public Collidable getCollide() { return collide; }
+
+    public void setCollide(Collidable collide) { this.collide = collide; }
+
     public PVector getPos() { return pos; }
 
-    public void setPos(PVector pos) { this.pos = pos; }
+    public void setPos(float x, float y) { this.pos = new PVector(x,y); }
 
     public void display(PApplet sketch, float cycle)
     {
@@ -57,9 +61,10 @@ public abstract class Collidable
 
     public void display(PApplet sketch, PShape s, float cycle) {
         update(cycle);
+
         if(color != null) {
             s.disableStyle();
-            s.setFill(color.getRGB());
+            sketch.fill(color.getRGB());
         }
         sketch.shape(s, pos.x, pos.y, rect.width, rect.height);
     }

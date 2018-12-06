@@ -7,9 +7,9 @@ import javax.script.*;
 public class ScriptManager
 {
     /* The javax.script JavaScript engine used by this class. */
-    private static ScriptEngine js_engine = new ScriptEngineManager().getEngineByName("JavaScript");
+    private volatile static ScriptEngine js_engine = new ScriptEngineManager().getEngineByName("JavaScript");
     /* The Invocable reference to the engine. */
-    private static Invocable js_invocable = (Invocable) js_engine;
+    private volatile static Invocable js_invocable = (Invocable) js_engine;
 
     /**
      * Used to bind the provided object to the name in the scope of the scripts

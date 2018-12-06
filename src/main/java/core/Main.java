@@ -37,7 +37,10 @@ public class Main extends PApplet implements Constants
         for (Collidable p : client.platforms())
             p.display(this, client.time().getTime() - offset);
         for(Player p: client.users().values()) {
-            p.display(this, client.time().getTic());
+            if(!client.replay)
+                p.display(this, client.time().getTic() / TIC);
+            else
+                p.display(this, client.time().getTic());
         }
     }
 
@@ -156,7 +159,7 @@ public class Main extends PApplet implements Constants
                 client.setReplay(mem, 2);
                 break;
         }
-        if(keyCode >= 49 && keyCode <=51) {
+        if(mem && keyCode >= 49 && keyCode <= 51) {
             start = client.receive();
             wait = (long) start.data().get(event_obj.TIMESTAMP);
             offset = client.time().getTime() - wait;

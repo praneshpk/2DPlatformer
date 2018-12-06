@@ -17,7 +17,6 @@ public class Player extends Collidable
 {
     private final UUID id;
     protected float dir, left, right, up;
-    protected Collidable collide;
 
     protected PVector velocity;
     protected int ground = GROUND;
@@ -75,10 +74,6 @@ public class Player extends Collidable
     public float getUp() { return up; }
 
     public void setUp(float up) { this.up = up; }
-
-    public Collidable getCollide() { return collide; }
-
-    public void setCollide(Collidable collide) { this.collide = collide; }
 
     public PVector getVelocity() { return velocity; }
 

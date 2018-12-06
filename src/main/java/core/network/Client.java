@@ -184,7 +184,10 @@ public class Client implements Constants
                 case START_REC:
                 case STOP_REC:
                 case INPUT:
-                    users = (Hashtable) e.data().get(event_obj.USERS);
+                    if(e.data().containsKey(event_obj.USERS))
+                        users = (Hashtable) e.data().get(event_obj.USERS);
+                    if(e.data().containsKey(event_obj.LIST))
+                        platforms = (LinkedList) e.data().get(event_obj.LIST);
                     break;
                 case SPAWN:
                     p = (Player) e.data().get(event_obj.PLAYER);
@@ -206,9 +209,15 @@ public class Client implements Constants
         for(Object d: data) {
             if(d instanceof Boolean)
                 break;
-            for (Event.Obj o : event_obj.values())
-                if (o.type().equals(d.getClass()))
+            args.put(Event.Obj.OBJ, d);
+            for (Event.Obj o : event_obj.values()) {
+                if (o.type().equals(d.getClass())) {
                     args.put(o, d);
+                    args.remove(Event.Obj.OBJ);
+                    break;
+                }
+            }
+
         }
         args.put(Event.Obj.ID, id);
         args.put(Event.Obj.TIMESTAMP, time.getTime());
