@@ -16,15 +16,16 @@ public class SpaceInvaders extends Main
     static core.Server server;
     static HashMap<String, HashMap> gameData;
     boolean shot = false, sw = false;
-    float t = 2000;
-    Random r = new Random();
+    final int BULLET_SPEED = 600 * TIC;
     int lives = 3;
+    Random r = new Random();
+
 
     protected void renderObjects()
     {
         background(0);
         long time = client.time().getTime();
-        if(time % 1600 < 100) {
+        if(time % 16000 /TIC < 100) {
             for (Collidable p : client.platforms()) {
                 if(((LinkedList)gameData.get("enemy").get("id")).contains(p.getId())) {
                     if(!sw) {
@@ -34,7 +35,7 @@ public class SpaceInvaders extends Main
                 }
             }
             sw = true;
-        } else if(time % 2000 < 200) {
+        } else if(time % 20000/TIC < 200) {
             sw = false;
         }
 
@@ -71,15 +72,7 @@ public class SpaceInvaders extends Main
 
     @Override
     protected void updateObjects() {
-        if((r.nextInt(client.platforms().size())) == 1) {
-            MovingPlatform c = new MovingPlatform(new PVector(r.nextInt(WIDTH -100) + 100, 0),
-                    8, 8, new PVector(0, -2000), 24, new Color(0xBFFFFF));
-            client.platforms().add(c);
-            ((LinkedList)gameData.get("bullet").get("id")).add(c.getId());
-            LocalTime t = new LocalTime(client.time(), 1);
-            t.reset();
-            ((HashMap)gameData.get("bullet").get("time")).put(c.getId(), t);
-        }
+        randomBullet();
         for(Collidable c : client.platforms()) {
             if(((LinkedList)gameData.get("bullet").get("id")).contains(c.getId())) {
                 if(c.getPos().y < 0)
@@ -102,6 +95,7 @@ public class SpaceInvaders extends Main
                         ((HashMap)gameData.get("bullet").get("time")).remove(c.getId());
                         client.send(event_type.INPUT, true, client.platforms());
                         shot = false;
+
                         break;
                     }
                     if(((LinkedList)gameData.get("barrier").get("id")).contains(c.getId())) {
@@ -137,11 +131,45 @@ public class SpaceInvaders extends Main
         }
     }
 
-    public Collidable collision(Collidable c, Collection<Collidable> obj) {
+    public Collidable collision(Collidable c, Collection<Collidable> obj)
+    {
         for(Collidable o : obj)
             if(o != c && o.getRect().intersects(c.getRect()))
                 return o;
         return null;
+    }
+
+    private void checkWin()
+    {
+        boolean win = true;
+        for(Collidable c : client.platforms()) {
+            if(((LinkedList)gameData.get("enemy").get("id")).contains(c.getId())) {
+                win = false;
+                break;
+            }
+        }
+        if(win) {
+            noLoop();
+            delay(1000);
+            textSize(32);
+            text("YOU WIN!", WIDTH / 2 - 100, HEIGHT - 250);
+            client.close();
+        }
+    }
+
+    private void randomBullet()
+    {
+        if((r.nextInt(client.platforms().size())) == 1) {
+            int rand = r.nextInt(client.platforms().size());
+            MovingPlatform c = new MovingPlatform(
+                    new PVector(client.platforms().get(rand).getPos().x, client.platforms().get(rand).getPos().y),
+                    8, 8, new PVector(0, -BULLET_SPEED), 24, new Color(0xBFFFFF));
+            client.platforms().add(c);
+            ((LinkedList)gameData.get("bullet").get("id")).add(c.getId());
+            LocalTime t = new LocalTime(client.time(), 1);
+            t.reset();
+            ((HashMap)gameData.get("bullet").get("time")).put(c.getId(), t);
+        }
     }
 
     public void draw()
@@ -151,7 +179,7 @@ public class SpaceInvaders extends Main
         updateObjects();
         for(int i = 0; i < lives; i++ )
             shape((PShape)((LinkedList)gameData.get("player").get("img")).peek(), 20 + i*50, 20, 25, 25);
-
+        checkWin();
     }
 
     public void keyPressed()
@@ -171,7 +199,7 @@ public class SpaceInvaders extends Main
             case 32:
                 if(!shot) {
                     MovingPlatform c = new MovingPlatform(new PVector(player.getPos().x + PLAYER_SZ / 2  - 4, HEIGHT - PLAYER_SZ - 25),
-                            8, 8, new PVector(0, 2000), 25, new Color(0xBFFFFF));
+                            8, 8, new PVector(0, BULLET_SPEED), 25, new Color(0xBFFFFF));
                     client.platforms().add(c);
                     ((LinkedList)gameData.get("bullet").get("id")).add(c.getId());
                     LocalTime t = new LocalTime(client.time(), 1);
@@ -217,7 +245,7 @@ public class SpaceInvaders extends Main
         ((LinkedList)gameData.get("enemy").get("path")).add(root + "invader2.svg");
 
         LinkedList<Collidable> collidables = new LinkedList<>();
-        for (int y = 0; y < 6; y++) {
+        for (int y = 0; y < 5; y++) {
             for (int x = 0; x < 14; x++) {
                 Collidable c = new MovingPlatform(new PVector(x * 50, y * 50),
                         50, 50, new PVector(-25 * TIC, 0),
