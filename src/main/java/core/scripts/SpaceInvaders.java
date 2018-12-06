@@ -62,10 +62,8 @@ public class SpaceInvaders extends Main
 
     public void setup()
     {
-        // Processing window settings
         smooth();
         noStroke();
-        //fill(0, 0, 0);
         for(HashMap<String, LinkedList> image : gameData.values())
             for (Object p : image.get("path"))
                 image.get("img").add(loadShape((String) p));
@@ -131,13 +129,9 @@ public class SpaceInvaders extends Main
                 if(lives < 1) {
                     noLoop();
                     delay(1000);
-                    //background(0);
                     textSize(32);
                     text("GAME OVER!", WIDTH / 2 - 100, HEIGHT - 250);
-
                     client.close();
-
-
                 }
             }
         }
