@@ -123,22 +123,31 @@ public class Server extends Thread implements Constants
 
     public void handleUpdate(Event.Type type, HashMap args) throws IOException
     {
-        Player p = (Player) args.get(event_obj.PLAYER);
-
-        // Update player in user list, if necessary
-        if(!users.get(p.id).equals(p)) {
-            synchronized (users) {
-                users = (Hashtable) args.get(event_obj.USERS);
-                users.replace(p.id, p);
+        HashMap nargs = new HashMap();
+        if(args.containsKey(event_obj.PLAYER)) {
+            Player p = (Player) args.get(event_obj.PLAYER);
+            // Update player in user list, if necessary
+            if (!users.get(p.getId()).equals(p)) {
+                synchronized (users) {
+                    users = (Hashtable) args.get(event_obj.USERS);
+                    users.replace(p.getId(), p);
+                }
             }
+            nargs.put(event_obj.USERS, users);
         }
 
-        args = new HashMap();
+        if(args.containsKey(event_obj.OBJ)) {
+            if(args.get(event_obj.ID).equals(cid)) {
+                synchronized (platforms) {
+                    platforms.remove(args.get(event_obj.OBJ));
+                }
+            }
+            nargs.put(event_obj.LIST, platforms);
+        }
 
         // Add standard args
-        args.put(event_obj.TIMESTAMP, time.getTime());
-        args.put(event_obj.USERS, users);
-        send(new Event(type, args), true);
+        nargs.put(event_obj.TIMESTAMP, time.getTime());
+        send(new Event(type, nargs), true);
     }
 
     public void handleRecord(Event.Type type, HashMap args) throws IOException
@@ -171,15 +180,10 @@ public class Server extends Thread implements Constants
         }
     }
 
-    public void listen()
+    public void listen() throws IOException
     {
         time.start();
-        try {
-            server = new ServerSocket(PORT);
-        } catch (Exception e) {
-            System.err.println("Can't initialize server: " + e);
-            System.exit(1);
-        }
+        server = new ServerSocket(PORT);
         System.out.println("Server started on " + server.getLocalSocketAddress());
 
         try {

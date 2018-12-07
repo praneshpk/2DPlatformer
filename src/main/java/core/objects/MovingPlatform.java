@@ -8,7 +8,7 @@ import java.awt.*;
 public class MovingPlatform extends StaticPlatform
 {
     private PVector lo, hi, dir;
-    private float time;
+    private float time, elapsed;
 
     /**
      * Creates a basic Moving Platform object with a random color
@@ -27,11 +27,38 @@ public class MovingPlatform extends StaticPlatform
         this.hi = new PVector(pos.x - dir.x * time, pos.y - dir.y * time);
     }
 
+    public MovingPlatform(PVector pos, int w, int h, PVector dir, int t, Color c)
+    {
+        super(pos, w, h, c);
+        type = Type.MOVING_PLATFORM;
+        this.dir = dir;
+        this.time = t /(float)TIC;
+        this.lo = new PVector(pos.x, pos.y);
+        this.hi = new PVector(pos.x - dir.x * time, pos.y - dir.y * time);
+    }
+
+    public void reset() {
+        this.lo = new PVector(pos.x, pos.y);
+        this.hi = new PVector(pos.x - dir.x * time, pos.y - dir.y * time);
+    }
+
+    public PVector getDir() {
+        return dir;
+    }
+
+    public float getTime() {
+        return time;
+    }
+
+    public void setTime(float time) {
+        this.time = time;
+    }
+
     @Override
     public void update(float cycle)
     {
-        float elapsed = cycle % (time * 2 * 1000) / 1000f;
-        if (elapsed < time) {
+        elapsed = cycle % (time * 2 * 1000) / 1000f;
+        if (elapsed < time ) {
             pos.x = lo.x - (dir.x * elapsed);
             pos.y = lo.y - (dir.y * elapsed);
         }

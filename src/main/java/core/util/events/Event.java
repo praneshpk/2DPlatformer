@@ -1,6 +1,7 @@
 package core.util.events;
 
 import core.objects.Collidable;
+import core.objects.MovingPlatform;
 import core.objects.Player;
 import core.util.time.Time;
 
@@ -59,7 +60,9 @@ public class Event implements Serializable, Comparable<Event>
         LIST(LinkedList.class),
         USERS(Hashtable.class),
         PLAYER(Player.class),
-        MSG(String.class);
+        MSG(String.class),
+        KEY(Integer.class),
+        OBJ(Object.class);
 
         private final Class<?> type;
         Obj(Class<?> type)
