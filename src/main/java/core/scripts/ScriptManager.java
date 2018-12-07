@@ -66,16 +66,4 @@ public class ScriptManager
         }
     }
 
-    public static void handleEvent(Event event) {
-        try {
-            js_invocable.invokeFunction("handle", event);
-        }
-        catch(ScriptException se) {
-            se.printStackTrace();
-        }
-        catch(NoSuchMethodException nsme) {
-            nsme.printStackTrace();
-        }
-    }
-
 }

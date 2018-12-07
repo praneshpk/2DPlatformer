@@ -20,7 +20,7 @@ public class SpaceInvaders extends Main
     int lives = 3;
     Random r = new Random();
 
-
+    @Override
     protected void renderObjects()
     {
         background(0);
@@ -264,6 +264,7 @@ public class SpaceInvaders extends Main
         }
 
         server = new core.Server(collidables);
+        server.MAX_USERS = 1;
 
         new Thread(() -> {
             try {

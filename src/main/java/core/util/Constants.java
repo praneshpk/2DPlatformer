@@ -1,7 +1,5 @@
 package core.util;
 
-import processing.core.PVector;
-
 public interface Constants
 {
 

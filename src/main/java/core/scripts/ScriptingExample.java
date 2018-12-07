@@ -15,7 +15,6 @@ public class ScriptingExample extends core.Main
         ScriptManager.bindArgument("client", client);
         ScriptManager.bindArgument("event", event);
         ScriptManager.executeScript();
-        //client.send(event);
     }
 
     @Override
