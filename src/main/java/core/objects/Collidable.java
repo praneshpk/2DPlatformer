@@ -2,31 +2,71 @@ package core.objects;
 
 import core.util.Constants;
 import processing.core.PApplet;
+import processing.core.PShape;
 import processing.core.PVector;
 
 import java.awt.*;
 import java.io.Serializable;
+import java.util.UUID;
 
 public abstract class Collidable
         implements Constants, Serializable, Comparable<Collidable>
 {
-    protected enum Type
+    public enum Type
     {
         DEATH_ZONE, MOVING_PLATFORM, STATIC_PLATFORM, PLAYER
     }
-    Type type;
-    Color color;
-    Rectangle rect;
-    PVector pos;
+    protected UUID id;
+    protected Type type;
+    protected Color color;
+    protected Rectangle rect;
+    protected PVector pos;
+    protected Collidable collide;
 
-    Type type() { return type; }
+    public UUID getId() { return id; }
 
-    public void display(PApplet p, float cycle)
+    public Type getType() { return type; }
+
+    public void setType(Type type) { this.type = type; }
+
+    public Color getColor() { return color; }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public void setColor(int r, int g, int b) {
+        color = new Color(r,g,b);
+    }
+
+    public void setRect(Rectangle rect) { this.rect = rect; }
+
+    public Collidable getCollide() { return collide; }
+
+    public void setCollide(Collidable collide) { this.collide = collide; }
+
+    public PVector getPos() { return pos; }
+
+    public void setPos(float x, float y) { this.pos = new PVector(x,y); }
+
+    public void display(PApplet sketch, float cycle)
     {
         update(cycle);
-        p.fill(color.getRGB());
-        p.noStroke();
-        p.rect(pos.x, pos.y, rect.width, rect.height);
+        if(color != null) {
+            sketch.fill(color.getRGB());
+            sketch.noStroke();
+            sketch.rect(pos.x, pos.y, rect.width, rect.height);
+        }
+    }
+
+    public void display(PApplet sketch, PShape s, float cycle) {
+        update(cycle);
+
+        if(color != null) {
+            s.disableStyle();
+            sketch.fill(color.getRGB());
+        }
+        sketch.shape(s, pos.x, pos.y, rect.width, rect.height);
     }
 
     public abstract void update(float cycle);
@@ -35,6 +75,6 @@ public abstract class Collidable
 
     public Rectangle getRect() { return rect; }
 
-    public int compareTo(Collidable o) { return type.compareTo(o.type()); }
+    public int compareTo(Collidable o) { return type.compareTo(o.getType()); }
 
 }

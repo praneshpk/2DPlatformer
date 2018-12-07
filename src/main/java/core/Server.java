@@ -11,6 +11,9 @@ import java.util.Random;
 public class Server extends core.network.Server implements Constants
 {
 
+    private static PVector[] deathZones = null;
+    private static PVector[] spawnPoints = null;
+
     /**
      * Sets up a list of randomly positioned and colored
      * shapes around the window
@@ -18,19 +21,30 @@ public class Server extends core.network.Server implements Constants
     public Server()
     {
         super();
+
+        deathZones = new PVector[]{
+                new PVector(WIDTH / 2, GROUND)
+        };
+        spawnPoints = new PVector[]{
+                new PVector(PLAYER_SZ, PLAYER_SZ * 2),
+                new PVector(PLAYER_SZ, GROUND),
+                new PVector(WIDTH - PLAYER_SZ * 3, PLAYER_SZ * 2),
+                new PVector(WIDTH - PLAYER_SZ * 3, GROUND)
+        };
+
         PVector pos;
 
         // Death zones
-        for(PVector p : DEATH_ZONES)
+        for(PVector p : deathZones)
             platforms.add(new DeathZone(p, PLAYER_SZ, PLAYER_SZ));
 
         // Spawn-friendly platforms
         for (int i = 0; i < 4; i++)
-            platforms.add(new StaticPlatform(SPAWN[i],
+            platforms.add(new StaticPlatform(spawnPoints[i],
                     100, 8, new Color(120)));
 
         // Random static platforms
-        for (int i = 0; i < PLATFORMS - 4; i++) {
+        for (int i = 0; i < COLLIDABLES - 4; i++) {
             Collidable c;
             Random random = new Random();
             do {
@@ -52,6 +66,12 @@ public class Server extends core.network.Server implements Constants
                 new PVector(0, 50 * TIC)));
     }
 
+    public Server(LinkedList<Collidable> platforms)
+    {
+        super();
+        this.platforms = platforms;
+    }
+
     public boolean collision(Rectangle pRect, LinkedList<Collidable> platforms)
     {
         for (Collidable p : platforms)
@@ -60,12 +80,18 @@ public class Server extends core.network.Server implements Constants
         return false;
     }
 
+    public static PVector[] getDeathZones() { return deathZones; }
 
+    public static PVector[] getSpawnPoints() { return spawnPoints; }
 
     public static void main(String[] args)
     {
         Server server = new Server();
-        server.listen();
+        try {
+            server.listen();
+        } catch(Exception e) {
+            System.err.println("Can't initialize server: " + e);
+        }
     }
 
 
