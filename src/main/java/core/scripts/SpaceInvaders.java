@@ -25,7 +25,6 @@ public class SpaceInvaders extends Main
     {
         background(0);
         long time = client.time().getTime();
-        println(time % 16000 /TIC );
         if((time % 16000 /TIC)%160 < 80) {
             for (Collidable p : client.platforms()) {
                 if(((LinkedList)gameData.get("enemy").get("id")).contains(p.getId())) {
