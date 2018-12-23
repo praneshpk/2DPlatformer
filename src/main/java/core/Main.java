@@ -63,10 +63,6 @@ public class Main extends PApplet implements Constants
         client = new Client(Server.HOSTNAME, Server.PORT);
         client.start();
 
-
-
-        //client
-
         // Processing window settings
         smooth();
         noStroke();
