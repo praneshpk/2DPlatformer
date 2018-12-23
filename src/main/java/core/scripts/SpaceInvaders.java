@@ -25,7 +25,8 @@ public class SpaceInvaders extends Main
     {
         background(0);
         long time = client.time().getTime();
-        if(time % 16000 /TIC < 100) {
+        println(time % 16000 /TIC );
+        if((time % 16000 /TIC)%160 < 80) {
             for (Collidable p : client.platforms()) {
                 if(((LinkedList)gameData.get("enemy").get("id")).contains(p.getId())) {
                     if(!sw) {
@@ -35,7 +36,7 @@ public class SpaceInvaders extends Main
                 }
             }
             sw = true;
-        } else if(time % 20000/TIC < 200) {
+        } else {
             sw = false;
         }
 
